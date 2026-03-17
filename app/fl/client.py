@@ -30,10 +30,14 @@ class FLClient:
         # Update local model with global weights
         self.update_model(global_weights)
 
+        # Save a copy of global weights BEFORE training for DP delta computation
+        import copy
+        import torch
+        pre_train_weights = copy.deepcopy(self.model.get_weights()) if global_weights else None
+
         # Load local data if a specific path is provided for this training round
         if data_path:
             file_path = data_path
-             # Use FLDataHandler instead of undefined FLDataLoader
             data_loader = FLDataHandler()
             X_train_round, y_train_round = data_loader.load_data(file_path)
             print(f"Client {self.client_id}: Loaded {len(X_train_round)} samples for this training round from {file_path}.")
@@ -45,17 +49,31 @@ class FLClient:
         # Local training
         metrics = self.model.train(X_train_round, y_train_round, epochs=20)
         
-        # Extract weights
+        # Extract trained weights
         n_samples = len(self.X_train)
-        weights = self.model.get_weights()
+        trained_weights = self.model.get_weights()
         
-        # Differential Privacy (Option 2)
-        # Inject Laplacian/Gaussian noise to the weights before sending to server
-        import torch
-        noise_multiplier = 0.001  # Reduced noise for better accuracy
-        for k in weights.keys():
-            # torch.randn_like creates a tensor of random numbers with the same size
-            noise = torch.randn_like(weights[k]) * noise_multiplier
-            weights[k] += noise
-        
-        return weights, n_samples, metrics
+        # Differential Privacy: Clip + Noise on WEIGHT DELTAS (not raw weights)
+        # This preserves the global model and only bounds the per-client update.
+        # Note: For formal (ε,δ)-DP, use a framework like Opacus with privacy accounting.
+        max_delta_norm = 5.0      # Clipping bound per parameter delta
+        noise_multiplier = 0.01   # σ relative to sensitivity
+
+        if pre_train_weights is not None:
+            for k in trained_weights.keys():
+                # Compute the weight update (delta)
+                delta = trained_weights[k] - pre_train_weights[k]
+                
+                # Step 1: Clip the delta's L2 norm
+                delta_norm = torch.norm(delta.float()).item()
+                if delta_norm > max_delta_norm:
+                    delta = delta * (max_delta_norm / delta_norm)
+                
+                # Step 2: Add Gaussian noise proportional to the clipping bound
+                noise = torch.randn_like(delta) * (noise_multiplier * max_delta_norm)
+                delta = delta + noise
+                
+                # Reconstruct the weight: global + clipped_noisy_delta
+                trained_weights[k] = pre_train_weights[k] + delta
+
+        return trained_weights, n_samples, metrics

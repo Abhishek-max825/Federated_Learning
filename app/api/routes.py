@@ -5,7 +5,14 @@ from app.api import bp
 from app.decorators import admin_required, hospital_required
 from app.fl_globals import aggregator
 from app.fl.client import FLClient
+from app import limiter
 import os
+
+
+def allowed_file(filename):
+    """Check if a file has an allowed extension."""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in current_app.config.get('ALLOWED_EXTENSIONS', {'csv'})
 
 # Mapping hospital IDs to data files
 HOSPITAL_DATA_MAP = {
@@ -15,6 +22,7 @@ HOSPITAL_DATA_MAP = {
 }
 
 @bp.route('/fl/status', methods=['GET'])
+@limiter.limit("60 per minute")
 @login_required
 def fl_status():
     return jsonify({
@@ -46,6 +54,10 @@ def train_local():
 
     file = request.files['file']
     filename = secure_filename(file.filename)
+
+    if not filename or not allowed_file(filename):
+        return jsonify({'error': 'Invalid file type. Only CSV files are allowed.'}), 400
+
     upload_dir = current_app.config['UPLOAD_FOLDER']
     os.makedirs(upload_dir, exist_ok=True)
     upload_path = os.path.join(upload_dir, filename)
@@ -69,6 +81,7 @@ def train_local():
             from app import db
             from app.models import AuditLog
             log = AuditLog(
+                user_id=current_user.id,
                 action='Client Training',
                 details=f'Hospital {hospital_id} trained on {n_samples} samples '
                         f'(file: {filename}). '
@@ -86,8 +99,8 @@ def train_local():
             'metrics': metrics
         })
     except Exception as e:
-        import traceback
-        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+        current_app.logger.error(f"Training error: {e}", exc_info=True)
+        return jsonify({'error': 'An internal error occurred during training.'}), 500
 
 @bp.route('/fl/aggregate', methods=['POST'])
 @login_required
@@ -104,6 +117,7 @@ def fl_history():
     return jsonify(aggregator.history)
 
 @bp.route('/audit-logs', methods=['GET'])
+@limiter.limit("60 per minute")
 @login_required
 @admin_required
 def get_audit_logs():
@@ -118,6 +132,7 @@ def get_audit_logs():
     } for log in logs])
 
 @bp.route('/clients/status', methods=['GET'])
+@limiter.limit("60 per minute")
 @login_required
 @admin_required
 def get_clients_status():
@@ -167,14 +182,14 @@ def rollback_model(round_num):
         # Log it
         from app import db
         from app.models import AuditLog
-        log = AuditLog(action='FL Rollback', details=f'Admin rolled back model to Round {round_num}.')
+        log = AuditLog(user_id=current_user.id, action='FL Rollback', details=f'Admin rolled back model to Round {round_num}.')
         db.session.add(log)
         db.session.commit()
         
         return jsonify({'message': f'Successfully rolled back to Round {round_num}.'})
     except Exception as e:
-        import traceback
-        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+        current_app.logger.error(f"Rollback error: {e}", exc_info=True)
+        return jsonify({'error': 'An internal error occurred during rollback.'}), 500
 
 @bp.route('/fl/reset', methods=['POST'])
 @login_required
@@ -185,7 +200,7 @@ def reset_fl_state():
     try:
         from app import db
         from app.models import AuditLog
-        log = AuditLog(action='FL State Reset', details='Admin reset the global FL state.')
+        log = AuditLog(user_id=current_user.id, action='FL State Reset', details='Admin reset the global FL state.')
         db.session.add(log)
         db.session.commit()
     except Exception as e:
@@ -220,6 +235,19 @@ def create_user():
     data = request.get_json()
     if not data or not data.get('username') or not data.get('password') or not data.get('role'):
         return jsonify({'error': 'Missing required fields'}), 400
+
+    # Validate password complexity
+    pw = data['password']
+    if len(pw) < 8:
+        return jsonify({'error': 'Password must be at least 8 characters long.'}), 400
+    if not any(c.isupper() for c in pw):
+        return jsonify({'error': 'Password must contain at least one uppercase letter.'}), 400
+    if not any(c.islower() for c in pw):
+        return jsonify({'error': 'Password must contain at least one lowercase letter.'}), 400
+    if not any(c.isdigit() for c in pw):
+        return jsonify({'error': 'Password must contain at least one digit.'}), 400
+    if pw.isalnum():
+        return jsonify({'error': 'Password must contain at least one special character.'}), 400
     
     if User.query.filter_by(username=data['username']).first():
         return jsonify({'error': 'Username already exists'}), 400
@@ -268,7 +296,7 @@ def clear_audit_logs():
         AuditLog.query.delete()
         
         # Optionally, log the clearing action itself so it isn't completely empty
-        log = AuditLog(action='Audit Logs Cleared', details='Admin cleared all previous audit logs.')
+        log = AuditLog(user_id=current_user.id, action='Audit Logs Cleared', details='Admin cleared all previous audit logs.')
         db.session.add(log)
         db.session.commit()
         

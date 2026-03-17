@@ -127,7 +127,7 @@ class FLModel:
     def load(self, filepath):
         """Load the PyTorch model state."""
         if os.path.exists(filepath):
-            checkpoint = torch.load(filepath, map_location=self.device)
+            checkpoint = torch.load(filepath, map_location=self.device, weights_only=True)
             self.model.load_state_dict(checkpoint['model_state_dict'])
             return True
         return False
