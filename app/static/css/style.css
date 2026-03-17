@@ -18,28 +18,41 @@ body {
 }
 
 /* Navbar */
-.navbar {
-    background-color: #0a0a0a !important; /* Darker than body */
-    border-bottom: 2px solid var(--neon-purple);
-    box-shadow: 0 0 15px rgba(188, 19, 254, 0.3);
+.app-navbar {
+    background: linear-gradient(135deg, rgba(15, 18, 26, 0.98), rgba(9, 11, 18, 0.98)) !important;
+    border-bottom: 1px solid rgba(145, 166, 235, 0.28);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
+    backdrop-filter: blur(8px);
 }
 
-.navbar-brand {
-    color: var(--neon-blue) !important;
-    font-weight: bold;
+.app-navbar-brand {
+    color: #eaf0ff !important;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    text-shadow: 0 0 5px var(--neon-blue);
+    letter-spacing: 0.08em;
+    font-size: 1.05rem;
 }
 
-.nav-link {
-    color: var(--text-secondary) !important;
-    transition: color 0.3s, text-shadow 0.3s;
+.app-nav-link {
+    color: #b4bfdc !important;
+    border-radius: 0.6rem;
+    padding: 0.42rem 0.7rem !important;
+    transition: background-color 0.18s ease, color 0.18s ease;
 }
 
-.nav-link:hover {
-    color: var(--neon-blue) !important;
-    text-shadow: 0 0 8px var(--neon-blue);
+.app-nav-link:hover,
+.app-nav-link:focus {
+    color: #eff4ff !important;
+    background: rgba(127, 152, 232, 0.17);
+}
+
+.app-nav-btn {
+    text-decoration: none;
+}
+
+.app-nav-btn:hover,
+.app-nav-btn:focus {
+    text-decoration: none;
 }
 
 /* Cards */

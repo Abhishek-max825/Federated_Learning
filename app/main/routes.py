@@ -11,7 +11,13 @@ from app.fl_globals import aggregator
 @bp.route('/index')
 @login_required
 def index():
-    return render_template('index.html', title='Home')
+    if current_user.role.name == 'Admin':
+        return redirect(url_for('main.admin_dashboard'))
+    elif current_user.role.name == 'Doctor':
+        return redirect(url_for('main.doctor_dashboard'))
+    elif current_user.role.name == 'Hospital Node':
+        return redirect(url_for('main.hospital_dashboard'))
+    return redirect(url_for('auth.login'))
 
 from app.models import AuditLog
 
@@ -26,7 +32,7 @@ def admin_dashboard():
 @login_required
 def doctor_dashboard():
     if current_user.role.name != 'Doctor':
-        return redirect(url_for('main.index'))
+        return redirect(url_for('auth.login'))
     form = PredictionForm()
     prediction = None
     if form.validate_on_submit():

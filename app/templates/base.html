@@ -11,40 +11,41 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark app-navbar">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">Heart Disease FL</a>
+            {% if current_user.is_authenticated %}
+                {% if current_user.role.name == 'Admin' %}
+                <a class="navbar-brand app-navbar-brand" href="{{ url_for('main.admin_dashboard') }}">Heart Disease FL</a>
+                {% elif current_user.role.name == 'Doctor' %}
+                <a class="navbar-brand app-navbar-brand" href="{{ url_for('main.doctor_dashboard') }}">Heart Disease FL</a>
+                {% elif current_user.role.name == 'Hospital Node' %}
+                <a class="navbar-brand app-navbar-brand" href="{{ url_for('main.hospital_dashboard') }}">Heart Disease FL</a>
+                {% else %}
+                <a class="navbar-brand app-navbar-brand" href="{{ url_for('auth.login') }}">Heart Disease FL</a>
+                {% endif %}
+            {% else %}
+                <a class="navbar-brand app-navbar-brand" href="{{ url_for('auth.login') }}">Heart Disease FL</a>
+            {% endif %}
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
-                    </li>
                 </ul>
                 <ul class="navbar-nav">
                     {% if current_user.is_anonymous %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                        <a class="nav-link app-nav-link" href="{{ url_for('auth.login') }}">Login</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <span class="nav-link">User: {{ current_user.username }} ({{ current_user.role.name }})</span>
+                        <span class="nav-link app-nav-link">User: {{ current_user.username }} ({{ current_user.role.name }})</span>
                     </li>
-                    <li class="nav-item">
-                        {% if current_user.role.name == 'Admin' %}
-                        <a class="nav-link" href="{{ url_for('main.admin_dashboard') }}">Dashboard</a>
-                        {% elif current_user.role.name == 'Doctor' %}
-                        <a class="nav-link" href="{{ url_for('main.doctor_dashboard') }}">Dashboard</a>
-                        {% elif current_user.role.name == 'Hospital Node' %}
-                        <a class="nav-link" href="{{ url_for('main.hospital_dashboard') }}">Dashboard</a>
-                        {% endif %}
-                    </li>
+
                     <li class="nav-item">
                         <form action="{{ url_for('auth.logout') }}" method="POST" style="display:inline;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="nav-link btn btn-link" style="cursor:pointer;">Logout</button>
+                            <button type="submit" class="nav-link app-nav-link btn btn-link app-nav-btn" style="cursor:pointer;">Logout</button>
                         </form>
                     </li>
                     {% endif %}

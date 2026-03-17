@@ -11,6 +11,7 @@ class Config:
     UPLOAD_FOLDER = os.path.join(basedir, 'app', 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload size
     ALLOWED_EXTENSIONS = {'csv'}
+    RATELIMIT_ENABLED = False
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI') or 'memory://'
 
 

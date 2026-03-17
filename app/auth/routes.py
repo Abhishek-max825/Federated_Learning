@@ -27,14 +27,14 @@ def login():
             elif user.role.name == 'Hospital Node':
                 next_page = url_for('main.hospital_dashboard')
             else:
-                next_page = url_for('main.index')
+                next_page = url_for('auth.login')
         return redirect(next_page)
     return render_template('auth/login.html', title='Sign In', form=form)
 
 @bp.route('/logout', methods=['POST'])
 def logout():
     logout_user()
-    return redirect(url_for('main.index'))
+    return redirect(url_for('auth.login'))
 
 @bp.route('/register', methods=['GET', 'POST'])
 @limiter.limit('3 per minute')

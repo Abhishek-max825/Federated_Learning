@@ -1,56 +1,427 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <h2 class="mb-4">Heart Disease Prediction</h2>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        {% if prediction %}
-        <div class="alert alert-info mt-4">
-            <h4>Prediction Result: {{ prediction }}</h4>
-            <p>The model predicts a <strong>{{ 'High' if prediction == 'Yes' else 'Low' }}</strong> risk of heart
-                disease.</p>
-            <p class="text-muted mb-0"><small>Based on the current global FL model.</small></p>
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #0d1117;
+        background-image: 
+            radial-gradient(ellipse at 10% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+            radial-gradient(ellipse at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+        min-height: 100vh;
+        color: #e2e8f0;
+    }
+
+    /* Override base navbar to make it completely hidden so we can build a custom integrated top bar */
+    .navbar { display: none !important; }
+
+    /* Override base container */
+    .container.mt-4 {
+        margin-top: 0 !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    /* Top App Bar */
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 3rem;
+        background: rgba(13, 17, 23, 0.7);
+        backdrop-filter: blur(12px) saturate(180%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        font-size: 1.25rem;
+        color: #fff;
+    }
+
+    .user-actions {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .avatar-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .profile-name { font-weight: 500; color: #fff; font-size: 0.9rem; }
+    .profile-role { font-size: 0.75rem; color: #94a3b8; }
+
+    .btn-logout-clean {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+        padding: 0.4rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-logout-clean:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    /* Main Content Layout */
+    .dashboard-layout {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 3rem;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    .header-text {
+        grid-column: 1 / -1;
+        margin-bottom: 1rem;
+    }
+
+    .header-text h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.5rem;
+    }
+    
+    .header-text p {
+        color: #94a3b8;
+        font-size: 1.05rem;
+    }
+
+    /* Cards */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(16px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-title svg { color: #10b981; }
+
+    /* Forms */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .input-group-custom {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .input-group-custom.full-width { grid-column: 1 / -1; }
+
+    .input-group-custom label {
+        color: #cbd5e1;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .custom-field {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    
+    .custom-field:focus {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+        outline: none;
+    }
+
+    .custom-field option { background: #0f172a; color: #fff; }
+
+    .btn-predict {
+        background: #10b981;
+        color: #fff;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-predict:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Results Card */
+    .result-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 3rem 2rem;
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        height: 100%;
+        min-height: 300px;
+    }
+
+    .result-idle svg {
+        width: 64px; height: 64px;
+        color: #334155;
+        margin-bottom: 1rem;
+    }
+    .result-idle p { color: #64748b; font-size: 0.95rem; }
+
+    .result-active { width: 100%; }
+    
+    .result-badge {
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+    }
+
+    .badge-high { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-low { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .result-title { font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; }
+    .result-subtitle { color: #94a3b8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 2rem; }
+
+    .info-list {
+        background: rgba(0,0,0,0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: left;
+    }
+    .info-list-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #cbd5e1;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+    .info-list-item:last-child { margin-bottom: 0; }
+    .info-list-item svg { width: 14px; height: 14px; color: #10b981; }
+
+    @media (max-width: 992px) {
+        .dashboard-layout { grid-template-columns: 1fr; padding: 2rem; }
+    }
+    @media (max-width: 640px) {
+        .form-grid { grid-template-columns: 1fr; }
+        .top-bar { padding: 1rem; }
+    }
+</style>
+
+<!-- Custom Top Bar -->
+<div class="top-bar">
+    <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+        PPFL Clinic
+    </div>
+    
+    <div class="user-actions">
+        <div class="user-profile">
+            <div class="avatar-circle">{{ current_user.username[0] | upper }}</div>
+            <div class="profile-info">
+                <span class="profile-name">Dr. {{ current_user.username }}</span>
+                <span class="profile-role">Medical Practitioner</span>
+            </div>
         </div>
-        {% endif %}
+        <form action="{{ url_for('auth.logout') }}" method="POST" style="margin: 0;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn-logout-clean">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Sign out
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Main Layout -->
+<div class="dashboard-layout">
+    <!-- Header -->
+    <div class="header-text">
+        <h1>Patient Diagnostic Terminal</h1>
+        <p>Conduct privacy-preserving heart disease risk assessments utilizing the global decentralized model.</p>
+    </div>
+
+    <!-- Main Form Panel -->
+    <div class="glass-card">
+        <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Patient Vitals & History
+        </div>
 
         <form method="post">
             {{ form.hidden_tag() }}
-            <div class="mb-3">
-                {{ form.age_group.label(class="form-label") }}
-                {{ form.age_group(class="form-select") }}
+            
+            <div class="form-grid">
+                <div class="input-group-custom">
+                    <label>{{ form.age_group.label.text }}</label>
+                    {{ form.age_group(class="custom-field") }}
+                </div>
+                
+                <div class="input-group-custom">
+                    <label>{{ form.sex.label.text }}</label>
+                    {{ form.sex(class="custom-field") }}
+                </div>
+                
+                <div class="input-group-custom">
+                    <label>{{ form.bmi.label.text }}</label>
+                    {{ form.bmi(class="custom-field", placeholder="e.g. 24.5") }}
+                    {% for error in form.bmi.errors %}
+                        <span style="color: #ef4444; font-size: 0.8rem; margin-top: 4px;">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="input-group-custom">
+                    <label>{{ form.smoked_100_cigarettes.label.text }}</label>
+                    {{ form.smoked_100_cigarettes(class="custom-field") }}
+                </div>
+                
+                <div class="input-group-custom full-width">
+                    <label>{{ form.diabetes_diagnosis.label.text }}</label>
+                    {{ form.diabetes_diagnosis(class="custom-field") }}
+                </div>
+                
+                <div class="input-group-custom">
+                    <label>{{ form.heart_attack_history.label.text }}</label>
+                    {{ form.heart_attack_history(class="custom-field") }}
+                </div>
+                
+                <div class="input-group-custom">
+                    <label>{{ form.stroke_history.label.text }}</label>
+                    {{ form.stroke_history(class="custom-field") }}
+                </div>
             </div>
-            <div class="mb-3">
-                {{ form.sex.label(class="form-label") }}
-                {{ form.sex(class="form-select") }}
-            </div>
-            <div class="mb-3">
-                {{ form.bmi.label(class="form-label") }}
-                {{ form.bmi(class="form-control") }}
-                {% for error in form.bmi.errors %}
-                <div class="text-danger"><small>{{ error }}</small></div>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.smoked_100_cigarettes.label(class="form-label") }}
-                {{ form.smoked_100_cigarettes(class="form-select") }}
-            </div>
-            <div class="mb-3">
-                {{ form.diabetes_diagnosis.label(class="form-label") }}
-                {{ form.diabetes_diagnosis(class="form-select") }}
-            </div>
-            <div class="mb-3">
-                {{ form.heart_attack_history.label(class="form-label") }}
-                {{ form.heart_attack_history(class="form-select") }}
-            </div>
-            <div class="mb-3">
-                {{ form.stroke_history.label(class="form-label") }}
-                {{ form.stroke_history(class="form-select") }}
-            </div>
-            <div class="mb-3">
-                {{ form.submit(class="btn btn-primary") }}
-            </div>
+
+            <button type="submit" class="btn-predict">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                Generate Risk Analysis
+            </button>
         </form>
+    </div>
+
+    <!-- Results Panel -->
+    <div>
+        <div class="result-card">
+            {% if prediction %}
+                <div class="result-active">
+                    <div class="result-badge {{ 'badge-high' if prediction == 'Yes' else 'badge-low' }}">
+                        {{ 'CRITICAL RISK' if prediction == 'Yes' else 'ELEVATED SAFETY' }}
+                    </div>
+                    
+                    <h2 class="result-title" style="color: {{ '#ef4444' if prediction == 'Yes' else '#10b981' }};">
+                        {{ 'High Risk' if prediction == 'Yes' else 'Low Risk' }}
+                    </h2>
+                    
+                    <p class="result-subtitle">
+                        The federated analysis engine predicts that this patient profile indicates a <strong>{{ 'high' if prediction == 'Yes' else 'low' }}</strong> probability of cardiovascular disease relative to the population model.
+                    </p>
+
+                    <div class="info-list">
+                        <div class="info-list-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Evaluated against multi-hospital schema
+                        </div>
+                        <div class="info-list-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Data maintained strictly client-side
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="result-idle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    <p>Enter patient criteria and run the analysis to view prediction results.</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -1,51 +1,405 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4 offset-md-4">
-        <h2>Register</h2>
-        <form action="" method="post" novalidate>
-            {{ form.hidden_tag() }}
-            <div class="mb-3">
-                {{ form.username.label(class="form-label") }}
-                {{ form.username(class="form-control", size=32) }}
-                {% for error in form.username.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control", size=64) }}
-                {% for error in form.email.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.role.label(class="form-label") }}
-                {{ form.role(class="form-select") }}
-                {% for error in form.role.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.password.label(class="form-label") }}
-                {{ form.password(class="form-control", size=32) }}
-                {% for error in form.password.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.confirm_password.label(class="form-label") }}
-                {{ form.confirm_password(class="form-control", size=32) }}
-                {% for error in form.confirm_password.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-            </div>
-            <div class="mb-3">
-                {{ form.submit(class="btn btn-primary") }}
-            </div>
-        </form>
-        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a></p>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* --- Animations --- */
+    @keyframes fadeScale {
+        0% {
+            opacity: 0;
+            transform: scale(0.96) translateY(20px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    @keyframes fadeUp {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes orbFloat1 {
+        0% {
+            transform: translate(0, 0) scale(1);
+        }
+
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+
+        100% {
+            transform: translate(0, 0) scale(1);
+        }
+    }
+
+    @keyframes orbFloat2 {
+        0% {
+            transform: translate(0, 0) scale(1);
+        }
+
+        33% {
+            transform: translate(-30px, 40px) scale(1.15);
+        }
+
+        66% {
+            transform: translate(20px, -20px) scale(0.85);
+        }
+
+        100% {
+            transform: translate(0, 0) scale(1);
+        }
+    }
+
+    @keyframes move-in {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @keyframes move-out {
+        0% {
+            transform: translateX(100%);
+        }
+
+        100% {
+            transform: translateX(200%);
+        }
+    }
+
+    .anim-fade-scale {
+        opacity: 0;
+        animation: fadeScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .anim-fade-up {
+        opacity: 0;
+        animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .delay-1 {
+        animation-delay: 0.1s;
+    }
+
+    .delay-2 {
+        animation-delay: 0.2s;
+    }
+
+    .delay-3 {
+        animation-delay: 0.3s;
+    }
+
+    .delay-4 {
+        animation-delay: 0.4s;
+    }
+
+    .delay-5 {
+        animation-delay: 0.5s;
+    }
+
+    .delay-6 {
+        animation-delay: 0.6s;
+    }
+
+    .delay-7 {
+        animation-delay: 0.7s;
+    }
+
+    body {
+        overflow: auto;
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #0b0f19;
+        /* Themed dark cool background */
+        background-image:
+            radial-gradient(ellipse at top left, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+            radial-gradient(ellipse at bottom right, rgba(0, 194, 209, 0.15) 0%, transparent 40%);
+        min-height: 100vh;
+    }
+
+    /* Hide the navbar */
+    .navbar {
+        display: none !important;
+    }
+
+    .container.mt-4 {
+        margin-top: 0 !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* Floating Card Layout (Curved, Lifted, Centered for Register) */
+    .register-card {
+        background: hsl(240, 16%, 12%);
+        width: 100%;
+        max-width: 500px;
+        border-radius: 28px;
+        /* Corner curve cut */
+        box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+        /* Showed lift */
+        overflow: hidden;
+        position: relative;
+        padding: 3.5rem 3rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Ambient Orbs for Glassmorphism */
+    .register-card::before {
+        content: '';
+        position: absolute;
+        top: 20%;
+        right: 15%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+        animation: orbFloat1 18s ease-in-out infinite;
+    }
+
+    .register-card::after {
+        content: '';
+        position: absolute;
+        bottom: 20%;
+        left: 10%;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(0, 194, 209, 0.2) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+        animation: orbFloat2 20s ease-in-out infinite reverse;
+    }
+
+    .register-card>* {
+        position: relative;
+        z-index: 10;
+    }
+
+    .brand-logo-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 2rem;
+    }
+
+    .brand-logo-header svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .register-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        letter-spacing: -0.5px;
+    }
+
+    .register-subtitle {
+        color: #9ca3af;
+        margin-bottom: 2.5rem;
+        font-size: 0.95rem;
+        text-align: center;
+    }
+
+    .register-subtitle a {
+        color: #a78bfa;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .register-card .form-group {
+        margin-bottom: 1.1rem;
+        position: relative;
+    }
+
+    .register-card .form-control,
+    .register-card .form-select {
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: #fff !important;
+        padding: 0.9rem 1.1rem;
+        border-radius: 10px !important;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .register-card .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .register-card .form-control:hover,
+    .register-card .form-select:hover {
+        background-color: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .register-card .form-control:focus,
+    .register-card .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border-color: rgba(139, 92, 246, 0.5) !important;
+        outline: none !important;
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.2em;
+        padding-right: 2.5rem;
+    }
+
+    .form-error {
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+        display: block;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+        width: 100%;
+        background-color: rgba(124, 58, 237, 0.45) !important;
+        backdrop-filter: blur(12px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+        color: #fff !important;
+        border: 1px solid rgba(139, 92, 246, 0.4) !important;
+        border-top: 1px solid rgba(196, 181, 253, 0.6) !important;
+        padding: 0.875rem;
+        border-radius: 12px !important;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        margin-top: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 2px 4px rgba(255, 255, 255, 0.15) !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-submit span {
+        position: relative;
+        z-index: 10;
+        display: inline-block;
+    }
+
+    .btn-submit:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(120deg, rgba(10, 10, 15, 0.6), rgba(40, 15, 80, 0.6));
+        animation: move-out 0.3s;
+        will-change: transform;
+        z-index: 1;
+    }
+
+    .btn-submit:hover {
+        border-color: rgba(167, 139, 250, 0.6) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .btn-submit:hover:before {
+        animation: move-in 0.3s forwards;
+    }
+</style>
+
+<div class="register-card anim-fade-scale">
+
+    <div class="brand-logo-header anim-fade-up delay-1">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 16L12 4L20 16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M9 16V12C9 10.3431 10.3431 9 12 9V9C13.6569 9 15 10.3431 15 12V16" stroke="white" stroke-width="2"
+                stroke-linecap="round" />
+        </svg>
+        PPFL
     </div>
+
+    <h2 class="register-title anim-fade-up delay-1">Join the platform</h2>
+    <div class="register-subtitle anim-fade-up delay-2">
+        Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a>
+    </div>
+
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="form-group anim-fade-up delay-3">
+            {{ form.username(class="form-control", placeholder="Choose a username") }}
+            {% for error in form.username.errors %}
+            <span class="form-error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group anim-fade-up delay-4">
+            {{ form.email(class="form-control", placeholder="Email address") }}
+            {% for error in form.email.errors %}
+            <span class="form-error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group anim-fade-up delay-5">
+            {{ form.role(class="form-select") }}
+            {% for error in form.role.errors %}
+            <span class="form-error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group anim-fade-up delay-6">
+            {{ form.password(class="form-control", placeholder="Create a password") }}
+            {% for error in form.password.errors %}
+            <span class="form-error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group anim-fade-up delay-7">
+            {{ form.confirm_password(class="form-control", placeholder="Confirm your password") }}
+            {% for error in form.confirm_password.errors %}
+            <span class="form-error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn-submit anim-fade-up delay-7"><span>Create account</span></button>
+    </form>
 </div>
+
 {% endblock %}

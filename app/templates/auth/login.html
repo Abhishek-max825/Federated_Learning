@@ -2,314 +2,638 @@
 
 {% block content %}
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* --- Animations --- */
+    @keyframes fadeScale {
+        0% {
+            opacity: 0;
+            transform: scale(0.96) translateY(20px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    @keyframes fadeUp {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes orbFloat1 {
+        0% {
+            transform: translate(0, 0) scale(1);
+        }
+
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+
+        100% {
+            transform: translate(0, 0) scale(1);
+        }
+    }
+
+    @keyframes orbFloat2 {
+        0% {
+            transform: translate(0, 0) scale(1);
+        }
+
+        33% {
+            transform: translate(-30px, 40px) scale(1.15);
+        }
+
+        66% {
+            transform: translate(20px, -20px) scale(0.85);
+        }
+
+        100% {
+            transform: translate(0, 0) scale(1);
+        }
+    }
+
+    @keyframes move-in {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @keyframes move-out {
+        0% {
+            transform: translateX(100%);
+        }
+
+        100% {
+            transform: translateX(200%);
+        }
+    }
+
+    .anim-fade-scale {
+        opacity: 0;
+        animation: fadeScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .anim-fade-up {
+        opacity: 0;
+        animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .delay-1 {
+        animation-delay: 0.1s;
+    }
+
+    .delay-2 {
+        animation-delay: 0.2s;
+    }
+
+    .delay-3 {
+        animation-delay: 0.3s;
+    }
+
+    .delay-4 {
+        animation-delay: 0.4s;
+    }
+
+    .delay-5 {
+        animation-delay: 0.5s;
+    }
+
     body {
-        overflow: hidden;
+        overflow: auto;
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #0b0f19;
+        /* Themed dark cool background */
+        background-image:
+            radial-gradient(ellipse at top left, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+            radial-gradient(ellipse at bottom right, rgba(0, 194, 209, 0.15) 0%, transparent 40%);
+        min-height: 100vh;
     }
 
-    /* Full screen layout overriding base container */
-    .login-page {
-        position: fixed;
-        inset: 0;
+    /* Hide the navbar from base.html for the login screen to make it full screen */
+    .navbar {
+        display: none !important;
+    }
+
+    .container.mt-4 {
+        margin-top: 0 !important;
+        max-width: 100% !important;
+        padding: 0 !important;
         display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
     }
 
-    /* Left branding panel */
+    /* Floating Card Layout (Curved, Lifted) */
+    .login-container {
+        display: flex;
+        background: hsl(240, 16%, 12%);
+        width: 100%;
+        max-width: 1040px;
+        min-height: 600px;
+        margin: 2rem;
+        border-radius: 28px;
+        /* Corner curve cut */
+        box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+        /* Showed lift */
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* Left panel */
     .login-left {
-        flex: 0 0 42%;
-        background: linear-gradient(160deg, #0f0f0f 0%, #1a1a2e 100%);
+        flex: 0 0 45%;
+        background: linear-gradient(145deg, #2b1854 0%, #151121 100%);
+        position: relative;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
+        justify-content: space-between;
+        padding: 3.5rem;
+    }
+
+    .login-left::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: radial-gradient(circle at 70% 30%, rgba(124, 58, 237, 0.4) 0%, transparent 60%),
+            radial-gradient(circle at 30% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    /* Brand Logo */
+    .brand-logo {
+        position: relative;
+        z-index: 10;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .brand-logo svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Left Panel Content */
+    .hero-content {
+        position: relative;
+        z-index: 10;
+        margin-bottom: 2rem;
+    }
+
+    .hero-content h1 {
+        font-size: 2.3rem;
+        /* slightly adjusted to fit longer technical words */
+        font-weight: 500;
+        color: #fff;
+        line-height: 1.3;
+        margin-bottom: 2rem;
+        transition: opacity 0.5s ease-in-out;
+        min-height: 90px;
+        /* prevents layout from jumping during text change */
+    }
+
+    /* Pagination / Slider Dots */
+    .slider-dots {
+        display: flex;
+        gap: 8px;
+    }
+
+    .slider-dot {
+        width: 24px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+    }
+
+    .slider-dot.active {
+        background: #fff;
+    }
+
+    /* Right panel */
+    .login-right {
+        flex: 0 0 55%;
+        display: flex;
+        align-items: center;
         justify-content: center;
         padding: 4rem;
-        border-right: 1px solid rgba(255, 255, 255, 0.06);
         position: relative;
         overflow: hidden;
     }
 
-    .login-left::after {
+    /* Ambient Orbs for Glassmorphism */
+    .login-right::before {
         content: '';
         position: absolute;
-        bottom: -100px;
-        right: -100px;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(0, 150, 180, 0.08) 0%, transparent 70%);
+        top: 15%;
+        right: 15%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, transparent 70%);
         pointer-events: none;
+        z-index: 0;
+        animation: orbFloat1 18s ease-in-out infinite;
     }
 
-    .brand-name {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #ffffff;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.5rem;
-    }
-
-    .brand-name span {
-        color: #00c2d1;
-    }
-
-    .brand-tagline {
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.4);
-        margin-bottom: 3rem;
-        line-height: 1.5;
-    }
-
-    .brand-features {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 1.2rem;
-    }
-
-    .brand-features li {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        color: rgba(255, 255, 255, 0.55);
-        font-size: 0.85rem;
-        line-height: 1.5;
-    }
-
-    .feature-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #00c2d1;
-        margin-top: 6px;
-        flex-shrink: 0;
-    }
-
-    .brand-version {
+    .login-right::after {
+        content: '';
         position: absolute;
-        bottom: 2rem;
-        left: 4rem;
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.2);
-        letter-spacing: 0.5px;
+        bottom: 15%;
+        left: 10%;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(0, 194, 209, 0.2) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+        animation: orbFloat2 20s ease-in-out infinite reverse;
     }
 
-    /* Right form panel */
-    .login-right {
-        flex: 1;
-        background: #111111;
+    .login-form-wrapper {
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .login-title {
+        font-size: 2.25rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+
+    .login-subtitle {
+        color: #9ca3af;
+        margin-bottom: 2.5rem;
+        font-size: 0.95rem;
+    }
+
+    .login-subtitle a {
+        color: #a78bfa;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .login-container .form-group {
+        margin-bottom: 1.25rem;
+        position: relative;
+    }
+
+    .login-container .form-control {
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: #fff !important;
+        padding: 0.9rem 1.1rem;
+        border-radius: 10px !important;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .login-container .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .login-container .form-control:hover {
+        background-color: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .login-container .form-control:focus {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border-color: rgba(139, 92, 246, 0.5) !important;
+        outline: none !important;
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* Checkbox */
+    .login-container .checkbox-wrapper {
         display: flex;
-        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .login-container .checkbox-input {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 5px !important;
+        cursor: pointer;
+        position: relative;
+        display: flex;
         align-items: center;
         justify-content: center;
-        padding: 4rem;
+        margin-top: 0;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15) !important;
     }
 
-    .login-form-box {
-        width: 100%;
-        max-width: 360px;
+    .login-container .checkbox-input:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
     }
 
-    .login-heading {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 0.3rem;
+    .login-container .checkbox-input:checked {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
     }
 
-    .login-sub {
-        font-size: 0.84rem;
-        color: rgba(255, 255, 255, 0.35);
-        margin-bottom: 2.2rem;
+    .login-container .checkbox-input:checked::after {
+        content: '';
+        width: 4px;
+        height: 8px;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        margin-bottom: 2px;
     }
 
-    .field-label {
-        display: block;
-        font-size: 0.75rem;
-        font-weight: 500;
-        letter-spacing: 0.6px;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.45);
-        margin-bottom: 0.4rem;
-    }
-
-    .form-input {
-        width: 100%;
-        background: #1a1a1a;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 6px;
-        color: #e8e8e8;
-        padding: 0.65rem 0.9rem;
-        font-size: 0.9rem;
-        outline: none;
-        transition: border 0.2s;
-        display: block;
-        box-sizing: border-box;
-    }
-
-    .form-input:focus {
-        border-color: #00c2d1;
-        background: #1e1e1e;
-    }
-
-    .form-check-label {
-        font-size: 0.82rem;
-        color: rgba(255, 255, 255, 0.4);
-    }
-
-    .submit-btn {
-        width: 100%;
-        padding: 0.7rem 1rem;
-        background: #00c2d1;
-        border: none;
-        border-radius: 6px;
-        color: #000;
-        font-size: 0.9rem;
-        font-weight: 600;
+    .login-container .checkbox-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.875rem;
         cursor: pointer;
-        transition: background 0.2s, opacity 0.2s;
-        letter-spacing: 0.3px;
+        transition: color 0.3s ease;
     }
 
-    .submit-btn:hover {
-        background: #00d9ea;
+    .login-container .checkbox-wrapper:hover .checkbox-label {
+        color: rgba(255, 255, 255, 0.9);
     }
 
-    .submit-btn:active {
-        opacity: 0.85;
-    }
-
-    .form-sep {
-        height: 1px;
-        background: rgba(255, 255, 255, 0.06);
-        margin: 1.8rem 0;
-    }
-
-    .register-link {
-        text-align: center;
-        font-size: 0.82rem;
-        color: rgba(255, 255, 255, 0.35);
-    }
-
-    .register-link a {
-        color: #00c2d1;
-        text-decoration: none;
+    /* Submit Button */
+    .btn-submit {
+        width: 100%;
+        background-color: rgba(124, 58, 237, 0.45) !important;
+        backdrop-filter: blur(12px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+        color: #fff !important;
+        border: 1px solid rgba(0, 0, 0, 0.4) !important;
+        border-top: 1px solid rgba(196, 181, 253, 0.6) !important;
+        padding: 0.875rem;
+        border-radius: 12px !important;
+        font-size: 1rem;
         font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 2px 4px rgba(255, 255, 255, 0.15) !important;
+        position: relative;
+        overflow: hidden;
     }
 
-    .register-link a:hover {
-        text-decoration: underline;
+    .btn-submit span {
+        position: relative;
+        z-index: 10;
+        display: inline-block;
+    }
+
+    .btn-submit:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(120deg, rgba(10, 10, 15, 0.6), rgba(40, 15, 80, 0.6));
+        animation: move-out 0.3s;
+        will-change: transform;
+        z-index: 1;
+    }
+
+    .btn-submit:hover {
+        border-color: rgba(167, 139, 250, 0.6) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .btn-submit:hover:before {
+        animation: move-in 0.3s forwards;
+    }
+
+    /* Divider */
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 2rem;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #3a3b4a;
+    }
+
+    .divider span {
+        padding: 0 1rem;
+    }
+
+    /* Social Buttons */
+    .social-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-social {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background-color: transparent;
+        border: 1px solid #3a3b4a;
+        color: #d1d5db;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: border-color 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-social:hover {
+        border-color: #6b7280;
+        color: #fff;
+    }
+
+    .btn-social svg {
+        width: 20px;
+        height: 20px;
     }
 
     .password-wrapper {
         position: relative;
     }
 
-    .password-wrapper .form-input {
-        padding-right: 2.8rem;
-    }
-
-    .toggle-pw {
+    .login-container .toggle-pw {
         position: absolute;
-        right: 0.75rem;
+        right: 1.1rem;
         top: 50%;
         transform: translateY(-50%);
         background: none;
         border: none;
+        color: rgba(255, 255, 255, 0.5) !important;
         cursor: pointer;
         padding: 0;
-        color: rgba(255, 255, 255, 0.3);
         display: flex;
-        align-items: center;
-        transition: color 0.2s;
+        transition: color 0.2s ease;
     }
 
-    .toggle-pw:hover {
-        color: rgba(255, 255, 255, 0.7);
+    .login-container .toggle-pw:hover {
+        color: rgba(255, 255, 255, 0.9) !important;
     }
 </style>
 
-<div class="login-page">
-    <!-- Left: Branding Panel -->
+<div class="login-container anim-fade-scale">
+    <!-- Left panel -->
     <div class="login-left">
-        <div class="brand-name">FL<span>Health</span></div>
-        <div class="brand-tagline">Federated Learning Platform<br>for Heart Disease Diagnosis</div>
+        <div class="brand-logo anim-fade-up delay-1">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 16L12 4L20 16" stroke="white" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M9 16V12C9 10.3431 10.3431 9 12 9V9C13.6569 9 15 10.3431 15 12V16" stroke="white"
+                    stroke-width="2" stroke-linecap="round" />
+            </svg>
+            PPFL
+        </div>
 
-        <ul class="brand-features">
-            <li>
-                <div class="feature-dot"></div>Privacy-preserving model training across hospital nodes
-            </li>
-            <li>
-                <div class="feature-dot"></div>Federated aggregation with no raw data sharing
-            </li>
-            <li>
-                <div class="feature-dot"></div>Role-based access for Admins, Doctors &amp; Hospital Nodes
-            </li>
-            <li>
-                <div class="feature-dot"></div>Real-time model accuracy and loss monitoring
-            </li>
-        </ul>
-
-        <div class="brand-version">v1.0 — Research Preview</div>
+        <div class="hero-content anim-fade-up delay-3">
+            <h1 id="dynamic-hero-text" style="opacity: 1;">Privacy-Preserving<br>Heart Disease Diagnosis</h1>
+            <div class="slider-dots">
+                <div class="slider-dot active"></div>
+                <div class="slider-dot"></div>
+                <div class="slider-dot"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- Right: Form Panel -->
+    <!-- Right panel - Form -->
     <div class="login-right">
-        <div class="login-form-box">
-            <div class="login-heading">Welcome back</div>
-            <div class="login-sub">Sign in to your account to continue</div>
+        <div class="login-form-wrapper">
+            <h2 class="login-title anim-fade-up delay-1">Sign in</h2>
+            <div class="login-subtitle anim-fade-up delay-2">
+                Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a>
+            </div>
 
             <form action="" method="post" autocomplete="off">
                 {{ form.hidden_tag() }}
 
-                <div style="margin-bottom: 1.2rem;">
-                    <label class="field-label">Username</label>
-                    {{ form.username(class="form-input", placeholder="Enter username") }}
+                <div class="form-group anim-fade-up delay-3">
+                    {{ form.username(class="form-control", placeholder="Enter username or email") }}
                 </div>
 
-                <div style="margin-bottom: 1.2rem;">
-                    <label class="field-label">Password</label>
-                    <div class="password-wrapper">
-                        {{ form.password(class="form-input", placeholder="Enter password", id="password-field") }}
-                        <button type="button" class="toggle-pw" onclick="togglePassword()" title="Show/hide password">
-                            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                fill="currentColor" viewBox="0 0 16 16">
-                                <path
-                                    d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
-                                <path
-                                    d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
-                            </svg>
-                        </button>
-                    </div>
+                <div class="form-group password-wrapper anim-fade-up delay-4">
+                    {{ form.password(class="form-control", placeholder="Enter your password", id="password-field") }}
+                    <button type="button" class="toggle-pw" onclick="togglePassword()">
+                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
                 </div>
 
-                <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
-                    {{ form.remember_me(class="form-check-input", style="margin-top: 0;") }}
-                    {{ form.remember_me.label(class="form-check-label") }}
+                <div class="checkbox-wrapper anim-fade-up delay-5">
+                    {{ form.remember_me(class="checkbox-input") }}
+                    {{ form.remember_me.label(class="checkbox-label") }}
                 </div>
 
-                <button type="submit" class="submit-btn">Sign In</button>
+                <button type="submit" class="btn-submit anim-fade-up delay-5"><span>Sign in</span></button>
             </form>
-
-            <div class="form-sep"></div>
-
-            <div class="register-link">
-                Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a>
-            </div>
         </div>
     </div>
 </div>
+
 <script>
     function togglePassword() {
         const field = document.getElementById('password-field');
-        const icon = document.getElementById('eye-icon');
+        const icon = document.querySelector('.toggle-pw svg');
+
         if (field.type === 'password') {
             field.type = 'text';
-            // Switch to eye-slash icon
-            icon.innerHTML = '<path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>';
+            icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
         } else {
             field.type = 'password';
-            // Restore eye icon
-            icon.innerHTML = '<path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>';
+            icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
         }
     }
+
+    // Dynamic Hero Text
+    const phrases = [
+        "Privacy-Preserving<br>Heart Disease Diagnosis",
+        "Secure Federated<br>Model Training",
+        "Collaborative Healthcare,<br>Without Compromise"
+    ];
+
+    let currentPhraseIndex = 0;
+    const heroText = document.getElementById('dynamic-hero-text');
+    const dots = document.querySelectorAll('.slider-dot');
+
+    function updateHeroText() {
+        if (!heroText) return;
+
+        // Fade out
+        heroText.style.opacity = '0';
+
+        setTimeout(() => {
+            currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+            heroText.innerHTML = phrases[currentPhraseIndex];
+
+            // Update dots
+            dots.forEach((dot, index) => {
+                if (index === currentPhraseIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+
+            // Fade in
+            heroText.style.opacity = '1';
+        }, 500); // Set timeout exactly matching CSS transition duration
+    }
+
+    // Update text every 4 seconds
+    setInterval(updateHeroText, 4000);
 </script>
 {% endblock %}
