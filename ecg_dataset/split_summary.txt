@@ -1,0 +1,24 @@
+ECG Dataset Split Summary
+============================================================
+
+Source: C:\Users\shaba\projects\academic_project\Federated_Learning\ecg_dataset\ptbxl_database.csv
+Total classifiable records: 7336
+
+Hospital 1:
+  Records: 1832
+  Normal: 916
+  Arrhythmia: 916
+  Location: C:\Users\shaba\projects\academic_project\Federated_Learning\ecg_dataset\hospital_1
+
+Hospital 2:
+  Records: 1848
+  Normal: 924
+  Arrhythmia: 924
+  Location: C:\Users\shaba\projects\academic_project\Federated_Learning\ecg_dataset\hospital_2
+
+Hospital 3:
+  Records: 1850
+  Normal: 925
+  Arrhythmia: 925
+  Location: C:\Users\shaba\projects\academic_project\Federated_Learning\ecg_dataset\hospital_3
+

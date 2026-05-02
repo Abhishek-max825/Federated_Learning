@@ -44,6 +44,28 @@ heart_disease_dataset/BRFSS_2022.csv
 # *.pkl
 # *.h5
 
+# ECG dataset signal files (too large - download PTB-XL separately)
+ecg_dataset/records100/
+ecg_dataset/records500/
+ecg_dataset/ptbxl_database.csv
+ecg_dataset/scp_statements.csv
+ecg_dataset/RECORDS
+ecg_dataset/LICENSE.txt
+# Per-hospital signal file copies
+ecg_dataset/hospital_1/records100/
+ecg_dataset/hospital_1/records500/
+ecg_dataset/hospital_2/records100/
+ecg_dataset/hospital_2/records500/
+ecg_dataset/hospital_3/records100/
+ecg_dataset/hospital_3/records500/
+# Any .dat / .hea signal files anywhere in the project
+**/*.dat
+**/*.hea
+
+# Database (machine-specific, regenerated via seed.py)
+*.db
+*.sqlite3
+
 # FL Generated folders
 app/fl/saved_models/
 app/uploads/

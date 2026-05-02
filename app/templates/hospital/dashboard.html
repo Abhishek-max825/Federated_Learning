@@ -398,29 +398,92 @@
                     Upload your hospital's dataset to participate in the learning sequence.
                 </div>
 
-                <div class="anim-fade-up delay-3">
-                    <label for="dataset-file" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Dataset File (CSV)</label>
-                    <input class="custom-file-input" type="file" id="dataset-file" accept=".csv" required>
-                    <div class="form-text-custom">Ensure the file matches the expected schema.</div>
+                <!-- Tabs -->
+                <div class="upload-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                    <button class="upload-tab active" data-tab="heart" style="padding: 0.6rem 1.2rem; border: none; background: rgba(59, 130, 246, 0.3); color: #fff; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem;">
+                        Heart Data
+                    </button>
+                    <button class="upload-tab" data-tab="ecg" style="padding: 0.6rem 1.2rem; border: none; background: transparent; color: #9ca3af; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem;">
+                        ECG Data
+                    </button>
                 </div>
 
-                <button id="train-btn" class="btn-submit anim-fade-up delay-4"><span>Train Local Model</span></button>
-                <div id="train-status" class="mt-3 anim-fade-up delay-5" style="text-align: center; color: #9ca3af; font-size: 0.9rem;"></div>
+                <!-- Heart Disease Upload Tab -->
+                <div id="heart-upload-tab" class="upload-tab-content" data-content="heart">
+                    <div class="anim-fade-up delay-3">
+                        <label for="dataset-file" style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Heart Disease Dataset (CSV)</label>
+                        <input class="custom-file-input" type="file" id="dataset-file" accept=".csv" required>
+                        <div class="form-text-custom">Upload patient health records (age, BMI, blood pressure, etc.)</div>
+                    </div>
 
-                <div id="analytics-panel" class="glass-panel d-none anim-fade-up delay-5">
-                    <h6>Local Training Analytics</h6>
-                    <hr>
-                    <div class="stat-row">
-                        <span class="stat-label">Samples Contributed</span>
-                        <span class="stat-val" id="stat-samples">-</span>
+                    <button id="train-btn" class="btn-submit anim-fade-up delay-4"><span>Train Heart Disease Model</span></button>
+                    <div id="train-status" class="mt-3 anim-fade-up delay-5" style="text-align: center; color: #9ca3af; font-size: 0.9rem;"></div>
+
+                    <div id="analytics-panel" class="glass-panel d-none anim-fade-up delay-5">
+                        <h6>Heart Training Analytics</h6>
+                        <hr>
+                        <div class="stat-row">
+                            <span class="stat-label">Samples Contributed</span>
+                            <span class="stat-val" id="stat-samples">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Local Accuracy</span>
+                            <span class="stat-val" id="stat-acc">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Local Loss</span>
+                            <span class="stat-val" id="stat-loss">-</span>
+                        </div>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Local Accuracy</span>
-                        <span class="stat-val" id="stat-acc">-</span>
+                </div>
+
+                <!-- ECG Upload Tab (Hidden by default) -->
+                <div id="ecg-upload-tab" class="upload-tab-content" data-content="ecg" style="display: none;">
+                    <!-- Option 1: Train on Pre-split Local Data -->
+                    <div class="anim-fade-up delay-3">
+                        <div class="glass-panel" style="margin-bottom: 1rem;">
+                            <h6 style="color: #0ea5e9; margin-bottom: 0.5rem;">Option 1: Local WFDB Dataset</h6>
+                            <p style="color: #94a3b8; font-size: 0.85rem; margin: 0;">
+                                Train on pre-split WFDB data at:<br>
+                                <code>ecg_dataset/hospital_{{ current_user.hospital_id }}/</code>
+                            </p>
+                        </div>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Local Loss</span>
-                        <span class="stat-val" id="stat-loss">-</span>
+                    <button id="ecg-train-btn" class="btn-submit anim-fade-up delay-4" style="background-color: rgba(14, 165, 233, 0.45) !important; margin-bottom: 2rem;"><span>Train on Local Dataset</span></button>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 1.5rem 0;">
+
+                    <!-- Option 2: Upload ECG Files -->
+                    <div class="anim-fade-up delay-3">
+                        <div class="glass-panel" style="margin-bottom: 1rem;">
+                            <h6 style="color: #0ea5e9; margin-bottom: 0.5rem;">Option 2: Upload ECG Files</h6>
+                            <p style="color: #94a3b8; font-size: 0.85rem; margin: 0;">
+                                Upload WFDB files (.dat + .hea) for training
+                            </p>
+                        </div>
+                        <label style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Select ECG Files</label>
+                        <input class="custom-file-input" type="file" id="ecg-file-upload" multiple required>
+                        <div class="form-text-custom">Select multiple .dat and .hea file pairs</div>
+                    </div>
+                    <button id="ecg-upload-train-btn" class="btn-submit anim-fade-up delay-4" style="background-color: rgba(16, 185, 129, 0.45) !important;"><span>Train on Uploaded Files</span></button>
+
+                    <div id="ecg-train-status" class="mt-3 anim-fade-up delay-5" style="text-align: center; color: #9ca3af; font-size: 0.9rem;"></div>
+
+                    <div id="ecg-analytics-panel" class="glass-panel d-none anim-fade-up delay-5">
+                        <h6>ECG Training Analytics</h6>
+                        <hr>
+                        <div class="stat-row">
+                            <span class="stat-label">Files Processed</span>
+                            <span class="stat-val" id="ecg-stat-files">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Local Accuracy</span>
+                            <span class="stat-val" id="ecg-stat-acc">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Local Loss</span>
+                            <span class="stat-val" id="ecg-stat-loss">-</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -429,6 +492,66 @@
 </div>
 
 <script>
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            max-width: 300px;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+        if (type === 'success') {
+            toast.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        } else if (type === 'error') {
+            toast.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        } else {
+            toast.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+        }
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.5s';
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+
+    // Tab Switching
+    document.querySelectorAll('.upload-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active from all tabs
+            document.querySelectorAll('.upload-tab').forEach(t => {
+                t.classList.remove('active');
+                t.style.background = 'transparent';
+                t.style.color = '#9ca3af';
+            });
+            // Hide all content
+            document.querySelectorAll('.upload-tab-content').forEach(c => c.style.display = 'none');
+
+            // Activate clicked tab
+            tab.classList.add('active');
+            const tabName = tab.dataset.tab;
+            if (tabName === 'heart') {
+                tab.style.background = 'rgba(59, 130, 246, 0.3)';
+            } else {
+                tab.style.background = 'rgba(14, 165, 233, 0.3)';
+            }
+            tab.style.color = '#fff';
+
+            // Show corresponding content
+            document.querySelector(`.upload-tab-content[data-content="${tabName}"]`).style.display = 'block';
+        });
+    });
+
+    // Heart Disease Train Button
     document.getElementById('train-btn').onclick = async () => {
         const btn = document.getElementById('train-btn');
         const statusDiv = document.getElementById('train-status');
@@ -443,7 +566,7 @@
                 showToast("Please select a CSV dataset file before training.", "error");
                 statusDiv.innerText = "Error: No file selected.";
                 btn.disabled = false;
-                btn.querySelector('span').innerText = "Train Local Model";
+                btn.querySelector('span').innerText = "Train Heart Disease Model";
                 return;
             }
             const formData = new FormData();
@@ -477,7 +600,151 @@
             statusDiv.innerText = "Network error.";
         } finally {
             btn.disabled = false;
-            btn.querySelector('span').innerText = "Train Local Model";
+            btn.querySelector('span').innerText = "Train Heart Disease Model";
+        }
+    };
+
+    // ECG Upload Train Button - Train on uploaded WFDB files
+    document.getElementById('ecg-upload-train-btn').onclick = async () => {
+        const btn = document.getElementById('ecg-upload-train-btn');
+        const statusDiv = document.getElementById('ecg-train-status');
+        const fileInput = document.getElementById('ecg-file-upload');
+
+        if (fileInput.files.length === 0) {
+            showToast("Please select ECG files before training.", "error");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.querySelector('span').innerText = "Training...";
+        statusDiv.innerText = "Training on uploaded files...";
+        statusDiv.style.color = '#0ea5e9';
+
+        try {
+            const formData = new FormData();
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('file', fileInput.files[i]);
+            }
+
+            const res = await fetch('/api/ecg/train', {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: formData
+            });
+
+            console.log('Response status:', res.status);
+
+            if (res.status === 401) {
+                showToast("Session expired. Please log in again.", "error");
+                statusDiv.innerText = "Error: Unauthorized (session expired). Please refresh and login.";
+                statusDiv.style.color = '#ef4444';
+                return;
+            }
+
+            if (res.status === 403) {
+                showToast("Access denied. Hospital role required.", "error");
+                statusDiv.innerText = "Error: Forbidden. You need Hospital Node permissions.";
+                statusDiv.style.color = '#ef4444';
+                return;
+            }
+
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(data.message, 'success');
+                statusDiv.innerText = data.message;
+                statusDiv.style.color = '#10b981';
+
+                // Display analytics
+                document.getElementById('ecg-analytics-panel').classList.remove('d-none');
+                document.getElementById('ecg-stat-files').innerText = fileInput.files.length;
+                if (data.metrics) {
+                    const acc = data.metrics.train_accuracy ?? data.metrics.accuracy;
+                    const loss = data.metrics.train_loss ?? data.metrics.loss;
+                    const valAcc = data.metrics.val_accuracy;
+                    const f1 = data.metrics.val_f1;
+                    document.getElementById('ecg-stat-acc').innerText = acc != null ? (acc * 100).toFixed(2) + '%' + (valAcc != null ? ` (Val: ${(valAcc*100).toFixed(2)}%${f1 != null ? ', F1: '+f1.toFixed(3) : ''})` : '') : 'N/A';
+                    document.getElementById('ecg-stat-loss').innerText = loss != null ? loss.toFixed(4) : 'N/A';
+                }
+            } else {
+                showToast(data.error || "Training failed", 'error');
+                statusDiv.innerText = "Error: " + (data.error || "Unknown error");
+                statusDiv.style.color = '#ef4444';
+            }
+        } catch (e) {
+            console.error('Network or parsing error:', e);
+            showToast("Network error during training", 'error');
+            statusDiv.innerText = "Network error. Check console (F12) for details.";
+            statusDiv.style.color = '#ef4444';
+        } finally {
+            btn.disabled = false;
+            btn.querySelector('span').innerText = "Train on Uploaded Files";
+        }
+    };
+
+    // ECG Train Button - Uses pre-split local WFDB data
+    document.getElementById('ecg-train-btn').onclick = async () => {
+        const btn = document.getElementById('ecg-train-btn');
+        const statusDiv = document.getElementById('ecg-train-status');
+
+        btn.disabled = true;
+        btn.querySelector('span').innerText = "Training...";
+        statusDiv.innerText = "Training on local WFDB dataset...";
+        statusDiv.style.color = '#0ea5e9';
+
+        try {
+            const res = await fetch('/api/ecg/train', {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+
+            console.log('Local train response status:', res.status);
+
+            if (res.status === 401) {
+                showToast("Session expired. Please log in again.", "error");
+                statusDiv.innerText = "Error: Unauthorized (session expired). Please refresh and login.";
+                statusDiv.style.color = '#ef4444';
+                return;
+            }
+
+            if (res.status === 403) {
+                showToast("Access denied. Hospital role required.", "error");
+                statusDiv.innerText = "Error: Forbidden. You need Hospital Node permissions.";
+                statusDiv.style.color = '#ef4444';
+                return;
+            }
+
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(data.message, 'success');
+                statusDiv.innerText = data.message;
+                statusDiv.style.color = '#10b981';
+
+                // Display analytics
+                document.getElementById('ecg-analytics-panel').classList.remove('d-none');
+                document.getElementById('ecg-stat-files').innerText = data.records || '-';
+                if (data.metrics) {
+                    const acc = data.metrics.train_accuracy ?? data.metrics.accuracy;
+                    const loss = data.metrics.train_loss ?? data.metrics.loss;
+                    const valAcc = data.metrics.val_accuracy;
+                    const f1 = data.metrics.val_f1;
+                    document.getElementById('ecg-stat-acc').innerText = acc != null ? (acc * 100).toFixed(2) + '%' + (valAcc != null ? ` (Val: ${(valAcc*100).toFixed(2)}%${f1 != null ? ', F1: '+f1.toFixed(3) : ''})` : '') : 'N/A';
+                    document.getElementById('ecg-stat-loss').innerText = loss != null ? loss.toFixed(4) : 'N/A';
+                }
+            } else {
+                showToast(data.error || "Training failed", 'error');
+                statusDiv.innerText = "Error: " + (data.error || "Unknown error");
+                statusDiv.style.color = '#ef4444';
+            }
+        } catch (e) {
+            console.error('Network error:', e);
+            showToast("Network error during training", 'error');
+            statusDiv.innerText = "Network error. Check console (F12).";
+            statusDiv.style.color = '#ef4444';
+        } finally {
+            btn.disabled = false;
+            btn.querySelector('span').innerText = "Train on Local Dataset";
         }
     };
 </script>

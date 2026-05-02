@@ -1,0 +1,633 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #0d1117;
+        background-image: 
+            radial-gradient(ellipse at 10% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+            radial-gradient(ellipse at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+        min-height: 100vh;
+        color: #e2e8f0;
+    }
+
+    .ecg-upload-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .page-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .page-title h1 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .page-title .badge {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+        padding: 0.375rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .mode-toggle {
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(30, 41, 59, 0.8);
+        padding: 0.25rem;
+        border-radius: 0.5rem;
+    }
+
+    .mode-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 0.375rem;
+        transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+    }
+
+    .mode-btn:hover:not(.active) {
+        color: #e2e8f0;
+    }
+
+    /* Main Card */
+    .upload-card {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+
+    .upload-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .upload-card-header .icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(16, 185, 129, 0.2);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .upload-card-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .upload-card-header p {
+        margin: 0.25rem 0 0 0;
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+
+    /* Upload Area */
+    .upload-area {
+        border: 2px dashed rgba(16, 185, 129, 0.3);
+        border-radius: 1rem;
+        padding: 4rem 2rem;
+        text-align: center;
+        transition: all 0.2s;
+        cursor: pointer;
+        background: rgba(16, 185, 129, 0.02);
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.05);
+    }
+
+    .upload-area .upload-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .upload-area h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .upload-area p {
+        color: #64748b;
+        margin: 0;
+    }
+
+    .upload-area .file-types {
+        display: inline-block;
+        margin-top: 0.75rem;
+        padding: 0.5rem 1rem;
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        color: #10b981;
+    }
+
+    #ecgFileInput {
+        display: none;
+    }
+
+    /* File List */
+    .file-list {
+        margin-top: 1.5rem;
+        display: none;
+    }
+
+    .file-list.show {
+        display: block;
+    }
+
+    .file-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .file-list-header h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    .file-list-header .clear-all {
+        background: none;
+        border: none;
+        color: #64748b;
+        font-size: 0.75rem;
+        cursor: pointer;
+    }
+
+    .file-list-header .clear-all:hover {
+        color: #ef4444;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .file-item .file-icon {
+        font-size: 1.25rem;
+    }
+
+    .file-item .file-info {
+        flex: 1;
+    }
+
+    .file-item .file-name {
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .file-item .file-size {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    .file-item .remove-file {
+        background: none;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        padding: 0.25rem;
+        font-size: 1.25rem;
+    }
+
+    .file-item .remove-file:hover {
+        color: #ef4444;
+    }
+
+    /* Action Buttons */
+    .action-bar {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn {
+        padding: 0.875rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        flex: 1;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary {
+        background: rgba(30, 41, 59, 0.8);
+        color: #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(51, 65, 85, 0.8);
+    }
+
+    .btn .spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid transparent;
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .btn.loading .spinner {
+        display: block;
+    }
+
+    .btn.loading .btn-text {
+        display: none;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Progress Bar */
+    .upload-progress {
+        display: none;
+        margin-top: 1.5rem;
+    }
+
+    .upload-progress.show {
+        display: block;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background: rgba(30, 41, 59, 0.8);
+        border-radius: 9999px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        border-radius: 9999px;
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+
+    .progress-text {
+        text-align: center;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    /* Instructions */
+    .instructions {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 0.75rem;
+    }
+
+    .instructions h4 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #fbbf24;
+        margin: 0 0 1rem 0;
+    }
+
+    .instructions ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    .instructions li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Status Messages */
+    .status-message {
+        display: none;
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        text-align: center;
+    }
+
+    .status-message.show {
+        display: block;
+    }
+
+    .status-message.success {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10b981;
+    }
+
+    .status-message.error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+</style>
+
+<div class="ecg-upload-container">
+    <div class="page-header">
+        <div class="page-title">
+            <h1>🏥 Hospital Node</h1>
+            <span class="badge">ECG Upload</span>
+        </div>
+        <div class="mode-toggle">
+            <a href="{{ url_for('main.hospital_dashboard') }}" class="mode-btn">Heart Data</a>
+            <span class="mode-btn active">ECG Data</span>
+        </div>
+    </div>
+
+    <div class="upload-card">
+        <div class="upload-card-header">
+            <div class="icon">📤</div>
+            <div>
+                <h2>Upload ECG Files for Training</h2>
+                <p>Select multiple 12-lead ECG files to contribute to the federated learning model</p>
+            </div>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <h3>Drop ECG files here</h3>
+            <p>or click to browse your files</p>
+            <span class="file-types">Accepts: CSV format (1000×12)</span>
+        </div>
+
+        <input type="file" id="ecgFileInput" accept=".csv" multiple />
+
+        <div class="file-list" id="fileList">
+            <div class="file-list-header">
+                <h4>Selected Files (<span id="fileCount">0</span>)</h4>
+                <button class="clear-all" id="clearAll">Clear all</button>
+            </div>
+            <div id="fileItems"></div>
+        </div>
+
+        <div class="upload-progress" id="uploadProgress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Uploading...</div>
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+
+        <div class="action-bar">
+            <a href="{{ url_for('main.hospital_dashboard') }}" class="btn btn-secondary">
+                ← Back to Dashboard
+            </a>
+            <button class="btn btn-primary" id="trainBtn" disabled>
+                <span class="btn-text">Start Training</span>
+                <span class="spinner"></span>
+            </button>
+        </div>
+
+        <div class="instructions">
+            <h4>⚠️ Upload Guidelines</h4>
+            <ul>
+                <li>Each file must contain 12-lead ECG data (1000 timesteps × 12 columns)</li>
+                <li>No header row - raw numeric data only</li>
+                <li>Maximum file size: 10MB per file</li>
+                <li>All files are preprocessed (high-pass filter, normalization) before training</li>
+                <li>Only Lead II will be extracted for RR interval analysis</li>
+                <li>Your data remains local - only model weights are shared with the server</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM Elements
+    const uploadArea = document.getElementById('uploadArea');
+    const ecgFileInput = document.getElementById('ecgFileInput');
+    const fileList = document.getElementById('fileList');
+    const fileCount = document.getElementById('fileCount');
+    const fileItems = document.getElementById('fileItems');
+    const clearAll = document.getElementById('clearAll');
+    const trainBtn = document.getElementById('trainBtn');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let selectedFiles = [];
+
+    // Upload area click
+    uploadArea.addEventListener('click', () => ecgFileInput.click());
+
+    // File input change
+    ecgFileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    // Clear all
+    clearAll.addEventListener('click', () => {
+        selectedFiles = [];
+        updateFileList();
+    });
+
+    function handleFiles(files) {
+        const validFiles = Array.from(files).filter(file => file.name.endsWith('.csv'));
+        
+        if (validFiles.length !== files.length) {
+            showToast('Only CSV files are allowed', 'warning');
+        }
+
+        selectedFiles = [...selectedFiles, ...validFiles];
+        updateFileList();
+    }
+
+    function updateFileList() {
+        if (selectedFiles.length === 0) {
+            fileList.classList.remove('show');
+            trainBtn.disabled = true;
+            return;
+        }
+
+        fileList.classList.add('show');
+        fileCount.textContent = selectedFiles.length;
+        trainBtn.disabled = false;
+
+        fileItems.innerHTML = selectedFiles.map((file, index) => `
+            <div class="file-item">
+                <span class="file-icon">📄</span>
+                <div class="file-info">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+                <button class="remove-file" onclick="removeFile(${index})">✕</button>
+            </div>
+        `).join('');
+    }
+
+    window.removeFile = function(index) {
+        selectedFiles.splice(index, 1);
+        updateFileList();
+    };
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Training
+    trainBtn.addEventListener('click', async () => {
+        if (selectedFiles.length === 0) return;
+
+        trainBtn.classList.add('loading');
+        trainBtn.disabled = true;
+        uploadProgress.classList.add('show');
+        statusMessage.classList.remove('show');
+
+        const formData = new FormData();
+        selectedFiles.forEach(file => {
+            formData.append('files', file);
+        });
+        formData.append('csrf_token', '{{ csrf_token() }}');
+
+        try {
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress > 90) clearInterval(progressInterval);
+                progressFill.style.width = progress + '%';
+            }, 200);
+
+            const response = await fetch('/api/ecg/train', {
+                method: 'POST',
+                body: formData
+            });
+
+            clearInterval(progressInterval);
+            progressFill.style.width = '100%';
+
+            const data = await response.json();
+
+            setTimeout(() => {
+                if (response.ok) {
+                    showStatus('success', `Training complete! Processed ${data.files_processed} files. Model update sent to server.`);
+                    selectedFiles = [];
+                    updateFileList();
+                    uploadProgress.classList.remove('show');
+                } else {
+                    showStatus('error', data.error || 'Training failed. Please try again.');
+                }
+            }, 500);
+
+        } catch (error) {
+            showStatus('error', 'Network error: ' + error.message);
+        } finally {
+            trainBtn.classList.remove('loading');
+            trainBtn.disabled = selectedFiles.length === 0;
+        }
+    });
+
+    function showStatus(type, message) {
+        statusMessage.className = 'status-message show ' + type;
+        statusMessage.textContent = message;
+    }
+</script>
+{% endblock %}

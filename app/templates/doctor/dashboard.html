@@ -273,6 +273,54 @@
     .info-list-item:last-child { margin-bottom: 0; }
     .info-list-item svg { width: 14px; height: 14px; color: #10b981; }
 
+    /* Tabs */
+    .prediction-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 0.5rem;
+    }
+    .prediction-tab {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: transparent;
+        color: #94a3b8;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    .prediction-tab.active {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+    }
+    .prediction-tab:hover:not(.active) {
+        color: #e2e8f0;
+    }
+
+    /* ECG Upload Area */
+    .ecg-upload-area {
+        border: 2px dashed rgba(14, 165, 233, 0.3);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        background: rgba(14, 165, 233, 0.05);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .ecg-upload-area:hover {
+        border-color: #0ea5e9;
+        background: rgba(14, 165, 233, 0.1);
+    }
+    .ecg-upload-area svg {
+        width: 48px;
+        height: 48px;
+        color: #0ea5e9;
+        margin-bottom: 1rem;
+    }
+
     @media (max-width: 992px) {
         .dashboard-layout { grid-template-columns: 1fr; padding: 2rem; }
     }
@@ -318,110 +366,457 @@
     <!-- Header -->
     <div class="header-text">
         <h1>Patient Diagnostic Terminal</h1>
-        <p>Conduct privacy-preserving heart disease risk assessments utilizing the global decentralized model.</p>
+        <p>Conduct privacy-preserving risk assessments utilizing the global decentralized model.</p>
+
+        <!-- Prediction Mode Tabs -->
+        <div class="prediction-tabs">
+            <button class="prediction-tab active" data-tab="heart">❤️ Heart Disease</button>
+            <button class="prediction-tab" data-tab="ecg">📊 ECG Arrhythmia</button>
+        </div>
     </div>
 
-    <!-- Main Form Panel -->
-    <div class="glass-card">
-        <div class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            Patient Vitals & History
-        </div>
-
-        <form method="post">
-            {{ form.hidden_tag() }}
-            
-            <div class="form-grid">
-                <div class="input-group-custom">
-                    <label>{{ form.age_group.label.text }}</label>
-                    {{ form.age_group(class="custom-field") }}
-                </div>
-                
-                <div class="input-group-custom">
-                    <label>{{ form.sex.label.text }}</label>
-                    {{ form.sex(class="custom-field") }}
-                </div>
-                
-                <div class="input-group-custom">
-                    <label>{{ form.bmi.label.text }}</label>
-                    {{ form.bmi(class="custom-field", placeholder="e.g. 24.5") }}
-                    {% for error in form.bmi.errors %}
-                        <span style="color: #ef4444; font-size: 0.8rem; margin-top: 4px;">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div class="input-group-custom">
-                    <label>{{ form.smoked_100_cigarettes.label.text }}</label>
-                    {{ form.smoked_100_cigarettes(class="custom-field") }}
-                </div>
-                
-                <div class="input-group-custom full-width">
-                    <label>{{ form.diabetes_diagnosis.label.text }}</label>
-                    {{ form.diabetes_diagnosis(class="custom-field") }}
-                </div>
-                
-                <div class="input-group-custom">
-                    <label>{{ form.heart_attack_history.label.text }}</label>
-                    {{ form.heart_attack_history(class="custom-field") }}
-                </div>
-                
-                <div class="input-group-custom">
-                    <label>{{ form.stroke_history.label.text }}</label>
-                    {{ form.stroke_history(class="custom-field") }}
-                </div>
+    <!-- Heart Disease Prediction Tab -->
+    <div id="heart-tab-content" class="prediction-tab-content" data-content="heart">
+        <!-- Main Form Panel -->
+        <div class="glass-card">
+            <div class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Patient Vitals & History
             </div>
 
-            <button type="submit" class="btn-predict">
+            <form method="post">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-grid">
+                    <div class="input-group-custom">
+                        <label>{{ form.age_group.label.text }}</label>
+                        {{ form.age_group(class="custom-field") }}
+                    </div>
+                    
+                    <div class="input-group-custom">
+                        <label>{{ form.sex.label.text }}</label>
+                        {{ form.sex(class="custom-field") }}
+                    </div>
+                    
+                    <div class="input-group-custom">
+                        <label>{{ form.bmi.label.text }}</label>
+                        {{ form.bmi(class="custom-field", placeholder="e.g. 24.5") }}
+                        {% for error in form.bmi.errors %}
+                            <span style="color: #ef4444; font-size: 0.8rem; margin-top: 4px;">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="input-group-custom">
+                        <label>{{ form.smoked_100_cigarettes.label.text }}</label>
+                        {{ form.smoked_100_cigarettes(class="custom-field") }}
+                    </div>
+                    
+                    <div class="input-group-custom full-width">
+                        <label>{{ form.diabetes_diagnosis.label.text }}</label>
+                        {{ form.diabetes_diagnosis(class="custom-field") }}
+                    </div>
+                    
+                    <div class="input-group-custom">
+                        <label>{{ form.heart_attack_history.label.text }}</label>
+                        {{ form.heart_attack_history(class="custom-field") }}
+                    </div>
+                    
+                    <div class="input-group-custom">
+                        <label>{{ form.stroke_history.label.text }}</label>
+                        {{ form.stroke_history(class="custom-field") }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-predict">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    Generate Risk Analysis
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Panel -->
+        <div>
+            <div class="result-card">
+                {% if prediction %}
+                    {% if prediction == 'Yes' %}
+                        <div class="result-active result-high-risk">
+                    {% else %}
+                        <div class="result-active result-low-risk">
+                    {% endif %}
+                        {% if prediction == 'Yes' %}
+                            <div class="result-badge badge-high">CRITICAL RISK</div>
+                        {% else %}
+                            <div class="result-badge badge-low">ELEVATED SAFETY</div>
+                        {% endif %}
+                        
+                        {% if prediction == 'Yes' %}
+                            <h2 class="result-title" style="color: #ef4444;">High Risk</h2>
+                        {% else %}
+                            <h2 class="result-title" style="color: #10b981;">Low Risk</h2>
+                        {% endif %}
+                        
+                        <p class="result-subtitle">
+                            The federated analysis engine predicts that this patient profile indicates a {% if prediction == 'Yes' %}<strong>high</strong>{% else %}<strong>low</strong>{% endif %} probability of cardiovascular disease relative to the population model.
+                        </p>
+
+                        <div class="info-list">
+                            <div class="info-list-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Evaluated against multi-hospital schema
+                            </div>
+                            <div class="info-list-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Data maintained strictly client-side
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="result-idle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
+                        <p>Enter patient criteria and run the analysis to view prediction results.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ECG Prediction Tab (Hidden by default) -->
+    <div id="ecg-tab-content" class="prediction-tab-content" data-content="ecg" style="display: none; grid-column: 1 / -1;">
+        <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-title" style="color: #0ea5e9;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: #0ea5e9;">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+                ECG Arrhythmia Analysis
+            </div>
+
+            <div class="ecg-upload-area" id="ecg-drop-area">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <h3 style="color: #fff; margin-bottom: 0.5rem;">Drop ECG file here</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem;">or click to browse</p>
+                <input type="file" id="ecg-file-input" multiple style="display: none;">
+                <p style="color: #64748b; font-size: 0.8rem; margin-top: 0.5rem;">Supports: WFDB (.dat + .hea) or CSV</p>
+            </div>
+
+            <div id="ecg-file-info" style="margin-top: 1rem; padding: 1rem; background: rgba(14, 165, 233, 0.1); border-radius: 8px; display: none;">
+                <p style="color: #e2e8f0; margin: 0;">Selected: <span id="ecg-filename" style="font-weight: 600;"></span></p>
+            </div>
+
+            <button id="ecg-analyze-btn" class="btn-predict" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                 </svg>
-                Generate Risk Analysis
+                Analyze ECG
             </button>
-        </form>
-    </div>
 
-    <!-- Results Panel -->
-    <div>
-        <div class="result-card">
-            {% if prediction %}
-                <div class="result-active">
-                    <div class="result-badge {{ 'badge-high' if prediction == 'Yes' else 'badge-low' }}">
-                        {{ 'CRITICAL RISK' if prediction == 'Yes' else 'ELEVATED SAFETY' }}
-                    </div>
-                    
-                    <h2 class="result-title" style="color: {{ '#ef4444' if prediction == 'Yes' else '#10b981' }};">
-                        {{ 'High Risk' if prediction == 'Yes' else 'Low Risk' }}
-                    </h2>
-                    
-                    <p class="result-subtitle">
-                        The federated analysis engine predicts that this patient profile indicates a <strong>{{ 'high' if prediction == 'Yes' else 'low' }}</strong> probability of cardiovascular disease relative to the population model.
-                    </p>
-
-                    <div class="info-list">
-                        <div class="info-list-item">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Evaluated against multi-hospital schema
-                        </div>
-                        <div class="info-list-item">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Data maintained strictly client-side
-                        </div>
-                    </div>
+            <div id="ecg-result-panel" style="margin-top: 2rem; display: none;">
+                <div class="result-card" style="min-height: auto; padding: 2rem;">
+                    <div id="ecg-result-content"></div>
                 </div>
-            {% else %}
-                <div class="result-idle">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="3" y1="9" x2="21" y2="9"></line>
-                        <line x1="9" y1="21" x2="9" y2="9"></line>
-                    </svg>
-                    <p>Enter patient criteria and run the analysis to view prediction results.</p>
-                </div>
-            {% endif %}
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    /* eslint-disable */
+    // Tab Switching
+    document.querySelectorAll('.prediction-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active from all tabs
+            document.querySelectorAll('.prediction-tab').forEach(t => t.classList.remove('active'));
+            // Hide all content
+            document.querySelectorAll('.prediction-tab-content').forEach(c => c.style.display = 'none');
+            
+            // Activate clicked tab
+            tab.classList.add('active');
+            const tabName = tab.dataset.tab;
+            
+            // Show corresponding content
+            const content = document.querySelector(`.prediction-tab-content[data-content="${tabName}"]`);
+            if (tabName === 'ecg') {
+                content.style.display = 'block';
+            } else {
+                content.style.display = 'grid';
+                content.style.gridTemplateColumns = '2fr 1fr';
+            }
+        });
+    });
+
+    // ECG File Upload
+    const ecgDropArea = document.getElementById('ecg-drop-area');
+    const ecgFileInput = document.getElementById('ecg-file-input');
+    const ecgFileInfo = document.getElementById('ecg-file-info');
+    const ecgFilename = document.getElementById('ecg-filename');
+
+    ecgDropArea.addEventListener('click', () => ecgFileInput.click());
+    ecgDropArea.addEventListener('dragover', (e) => { e.preventDefault(); ecgDropArea.style.borderColor = '#0ea5e9'; });
+    ecgDropArea.addEventListener('dragleave', () => { ecgDropArea.style.borderColor = 'rgba(14, 165, 233, 0.3)'; });
+    ecgDropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        ecgDropArea.style.borderColor = 'rgba(14, 165, 233, 0.3)';
+        if (e.dataTransfer.files.length > 0) {
+            ecgFileInput.files = e.dataTransfer.files;
+            showEcgFileInfo(ecgFileInput.files);
+        }
+    });
+    ecgFileInput.addEventListener('change', () => {
+        if (ecgFileInput.files.length > 0) {
+            showEcgFileInfo(ecgFileInput.files);
+        }
+    });
+
+    function showEcgFileInfo(files) {
+        const names = Array.from(files).map(f => f.name).join(', ');
+        ecgFilename.textContent = names;
+        ecgFileInfo.style.display = 'block';
+        
+        // Check if WFDB files are complete
+        const hasDat = Array.from(files).some(f => f.name.endsWith('.dat'));
+        const hasHea = Array.from(files).some(f => f.name.endsWith('.hea'));
+        const hasCsv = Array.from(files).some(f => f.name.endsWith('.csv'));
+        
+        if (hasDat && !hasHea && !hasCsv) {
+            showToast('For WFDB format, please also select the .hea file', 'warning');
+        }
+    }
+
+    // ECG Analysis
+    document.getElementById('ecg-analyze-btn').onclick = async () => {
+        const btn = document.getElementById('ecg-analyze-btn');
+        const resultPanel = document.getElementById('ecg-result-panel');
+        const resultContent = document.getElementById('ecg-result-content');
+
+        if (!ecgFileInput.files.length) {
+            showToast('Please select an ECG file first', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>Analyzing...</span>';
+
+        try {
+            const formData = new FormData();
+            // Append all selected files (for WFDB: .dat + .hea)
+            for (let i = 0; i < ecgFileInput.files.length; i++) {
+                formData.append('file', ecgFileInput.files[i]);
+            }
+
+            const res = await fetch('/api/ecg/predict', {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                resultPanel.style.display = 'block';
+                const isArrhythmia = data.prediction === 'Arrhythmia';
+                const isUnanalyzable = data.prediction === 'UNANALYZABLE';
+                // Support both new flat format and old nested format
+                const cv = data.rr_variability !== undefined ? data.rr_variability : (data.clinical_metrics?.cv_percent || 'N/A');
+                const peaks = data.r_peaks !== undefined ? data.r_peaks : (data.clinical_metrics?.num_peaks || 'N/A');
+                const hr = data.heart_rate !== undefined ? data.heart_rate : (data.clinical_metrics?.heart_rate || 'N/A');
+                const decisionBasis = data.decision_basis || data.clinical_metrics?.decision_basis || 'ML Analysis';
+                const confidence = data.confidence !== undefined ? (data.confidence * 100).toFixed(1) : 'N/A';
+                
+                resultContent.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <h3 style="color: #5eead4; font-size: 1.5rem; margin-bottom: 0.5rem;">Analysis Result</h3>
+                        <button onclick="document.getElementById('ecg-file-input').value=''; document.getElementById('ecg-result-panel').style.display='none';" 
+                            style="background: #10b981; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">New Scan</button>
+                    </div>
+                    
+                    <h4 style="color: #94a3b8; font-size: 1.1rem; margin-bottom: 1rem;">Diagnosis</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                        <div style="background: #1e293b; border-left: 4px solid ${isArrhythmia ? '#ef4444' : '#10b981'}; border-radius: 8px; padding: 1rem;">
+                            <div style="color: #64748b; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem;">Rhythm</div>
+                            <div style="color: ${isArrhythmia ? '#ef4444' : '#10b981'}; font-size: 1.3rem; font-weight: 600;">${data.prediction.toUpperCase()}</div>
+                        </div>
+                        <div style="background: #1e293b; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1rem;">
+                            <div style="color: #64748b; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem;">Confidence</div>
+                            <div style="color: #f1f5f9; font-size: 1.5rem; font-weight: 600;">${(data.confidence * 100).toFixed(1)}%</div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="color: #94a3b8; font-size: 1.1rem; margin-bottom: 1rem;">Clinical Analysis</h4>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: #1e293b; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1rem; text-align: center;">
+                            <div style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">RR Variability</div>
+                            <div style="color: #f1f5f9; font-size: 1.1rem; font-weight: 600;">${cv}%</div>
+                        </div>
+                        <div style="background: #1e293b; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1rem; text-align: center;">
+                            <div style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">Heart Rate</div>
+                            <div style="color: #f1f5f9; font-size: 1.1rem; font-weight: 600;">${hr} bpm</div>
+                        </div>
+                        <div style="background: #1e293b; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1rem; text-align: center;">
+                            <div style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">R Peaks</div>
+                            <div style="color: #f1f5f9; font-size: 1.1rem; font-weight: 600;">${peaks}</div>
+                        </div>
+                        <div style="background: #1e293b; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1rem; text-align: center;">
+                            <div style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 0.5rem;">Decision Basis</div>
+                            <div style="color: #f1f5f9; font-size: 0.8rem; font-weight: 500;">${decisionBasis}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(14, 165, 233, 0.1); border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" style="width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">
+                                <strong style="color: #0ea5e9;">Clinical Note:</strong> RR CV < 8% indicates stable rhythm (Normal), > 12% indicates irregular rhythm (Arrhythmia). 8-12% uses ML prediction. Current: ${cv}%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="color: #94a3b8; font-size: 1.1rem; margin-bottom: 1rem;">
+                        Rhythm Visualization (Lead II)
+                        <a href="#" style="color: #64748b; font-size: 0.75rem; margin-left: 0.5rem; text-decoration: none;" title="Lead II ECG with attention heatmap overlay">⛓</a>
+                    </h4>
+                    <div style="background: #0f172a; border-radius: 8px; padding: 0.5rem; overflow: hidden;">
+                        <canvas id="ecg-viz-canvas" style="width: 100%; height: 180px; display: block; border-radius: 6px;"></canvas>
+                    </div>
+                `;
+                
+                // Draw ECG rhythm visualization
+                setTimeout(() => drawEcgViz(data), 50);
+            } else {
+                showToast(`${data.error || 'Analysis failed'}`, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error during analysis', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Analyze ECG';
+        }
+    };
+
+    function drawEcgViz(data) {
+        const canvas = document.getElementById('ecg-viz-canvas');
+        if (!canvas) return;
+
+        // Match canvas resolution to displayed size
+        const rect = canvas.getBoundingClientRect();
+        const W = Math.floor(rect.width) || 700;
+        const H = 180;
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext('2d');
+
+        const signal = data.lead_ii_signal || [];
+        const attention = data.attention_map || [];   // same length as model input (1000)
+        const rPeakPos = data.r_peak_positions || []; // fractions 0–1
+        const isArrhythmia = data.prediction === 'Arrhythmia';
+
+        if (signal.length === 0) {
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#475569';
+            ctx.font = '14px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Signal data unavailable', W / 2, H / 2);
+            return;
+        }
+
+        // --- 1. Background: attention heatmap columns ---
+        const attLen = attention.length || signal.length;
+        const colW = W / attLen;
+        for (let i = 0; i < attLen; i++) {
+            const attnVal = attention.length ? attention[i] : 0;
+            // Map 0–1 attention to color: low=dark grey, high=deep red
+            const intensity = Math.min(1, Math.max(0, attnVal));
+            // Blend dark (#1a1a2e) → red (#8b0000) based on intensity
+            const r = Math.round(26 + intensity * (139 - 26));
+            const g = Math.round(26 + intensity * (0 - 26));
+            const b = Math.round(46 + intensity * (0 - 46));
+            ctx.fillStyle = `rgb(${r},${g},${b})`;
+            ctx.fillRect(i * colW, 0, Math.ceil(colW) + 1, H);
+        }
+
+        // Overlay slight dark vignette at edges
+        const vignette = ctx.createLinearGradient(0, 0, W, 0);
+        vignette.addColorStop(0, 'rgba(13,17,23,0.6)');
+        vignette.addColorStop(0.08, 'rgba(13,17,23,0)');
+        vignette.addColorStop(0.92, 'rgba(13,17,23,0)');
+        vignette.addColorStop(1, 'rgba(13,17,23,0.6)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, W, H);
+
+        // --- 2. Subtle grid lines ---
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        for (let y = 0; y <= H; y += H / 4) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        }
+        for (let x = 0; x <= W; x += W / 10) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+        }
+
+        // --- 3. Lead II waveform ---
+        const sigMin = Math.min(...signal);
+        const sigMax = Math.max(...signal);
+        const sigRange = sigMax - sigMin || 1;
+        const pad = H * 0.12;
+
+        ctx.strokeStyle = '#22d3ee'; // cyan-400
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = '#06b6d4';
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        for (let i = 0; i < signal.length; i++) {
+            const x = (i / (signal.length - 1)) * W;
+            const y = pad + ((sigMax - signal[i]) / sigRange) * (H - 2 * pad);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // --- 4. R-peak markers (vertical lines + dots) ---
+        rPeakPos.forEach(pos => {
+            const x = pos * W;
+            // Find closest signal sample for Y position
+            const idx = Math.round(pos * (signal.length - 1));
+            const y = pad + ((sigMax - signal[idx]) / sigRange) * (H - 2 * pad);
+
+            // Vertical dashed line
+            ctx.setLineDash([3, 3]);
+            ctx.strokeStyle = isArrhythmia ? 'rgba(251,191,36,0.5)' : 'rgba(52,211,153,0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Dot at peak
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = isArrhythmia ? '#fbbf24' : '#34d399';
+            ctx.fill();
+        });
+
+        // --- 5. Label ---
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(8, 6, 58, 20);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px Inter, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('Lead II', 12, 20);
+    }
+</script>
 {% endblock %}

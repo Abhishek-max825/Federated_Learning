@@ -1,0 +1,640 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #0d1117;
+        background-image: 
+            radial-gradient(ellipse at 10% 20%, rgba(14, 165, 233, 0.08) 0%, transparent 40%),
+            radial-gradient(ellipse at 90% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 40%);
+        min-height: 100vh;
+        color: #e2e8f0;
+    }
+
+    .ecg-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Header */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .page-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .page-title .badge {
+        background: rgba(14, 165, 233, 0.2);
+        color: #0ea5e9;
+        padding: 0.375rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .back-link {
+        color: #64748b;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: #e2e8f0;
+    }
+
+    /* Main Grid */
+    .ecg-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .ecg-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Cards */
+    .card {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-header h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .card-header .icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(14, 165, 233, 0.2);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    /* Upload Area */
+    .upload-area {
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 0.75rem;
+        padding: 3rem 2rem;
+        text-align: center;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover {
+        border-color: #0ea5e9;
+        background: rgba(14, 165, 233, 0.05);
+    }
+
+    .upload-area .upload-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .upload-area p {
+        color: #64748b;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .upload-area .file-types {
+        font-size: 0.75rem;
+        color: #475569;
+    }
+
+    #ecgFileInput {
+        display: none;
+    }
+
+    .selected-file {
+        display: none;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .selected-file.show {
+        display: flex;
+    }
+
+    .selected-file .file-icon {
+        font-size: 1.25rem;
+    }
+
+    .selected-file .file-name {
+        flex: 1;
+        font-weight: 500;
+    }
+
+    .selected-file .remove-file {
+        background: none;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+
+    .selected-file .remove-file:hover {
+        color: #ef4444;
+    }
+
+    /* Analyze Button */
+    .analyze-btn {
+        width: 100%;
+        padding: 1rem;
+        margin-top: 1.5rem;
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .analyze-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(14, 165, 233, 0.4);
+    }
+
+    .analyze-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .analyze-btn .spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid transparent;
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .analyze-btn.loading .spinner {
+        display: block;
+    }
+
+    .analyze-btn.loading .btn-text {
+        display: none;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Results Card */
+    .results-card {
+        display: none;
+    }
+
+    .results-card.show {
+        display: block;
+    }
+
+    .prediction-result {
+        text-align: center;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .prediction-result.normal {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .prediction-result.arrhythmia {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .prediction-result .result-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .prediction-result h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .prediction-result.normal h2 {
+        color: #10b981;
+    }
+
+    .prediction-result.arrhythmia h2 {
+        color: #ef4444;
+    }
+
+    .prediction-result .confidence {
+        font-size: 1.25rem;
+        color: #64748b;
+    }
+
+    /* Method Badge */
+    .method-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: 1rem;
+    }
+
+    .method-badge.ml {
+        background: rgba(99, 102, 241, 0.2);
+        color: #818cf8;
+    }
+
+    .method-badge.clinical {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .metric-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 0.5rem;
+    }
+
+    .metric-item .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0ea5e9;
+    }
+
+    .metric-item .metric-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Clinical Reason */
+    .clinical-reason {
+        padding: 1rem;
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 0.5rem;
+        border-left: 3px solid #0ea5e9;
+    }
+
+    .clinical-reason h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #94a3b8;
+        margin: 0 0 0.5rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .clinical-reason p {
+        margin: 0;
+        color: #e2e8f0;
+        line-height: 1.5;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chart-placeholder {
+        color: #64748b;
+        text-align: center;
+    }
+
+    /* Instructions */
+    .instructions {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 0.5rem;
+    }
+
+    .instructions h4 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #fbbf24;
+        margin: 0 0 0.75rem 0;
+    }
+
+    .instructions ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    .instructions li {
+        margin-bottom: 0.25rem;
+    }
+</style>
+
+<div class="ecg-container">
+    <div class="page-header">
+        <div class="page-title">
+            <h1>📊 ECG Arrhythmia Detection</h1>
+            <span class="badge">Hybrid ML + Clinical</span>
+        </div>
+        <a href="{{ url_for('main.doctor_mode_selector') }}" class="back-link">
+            ← Back to Mode Selector
+        </a>
+    </div>
+
+    <div class="ecg-grid">
+        <!-- Upload Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="icon">📤</div>
+                <h3>Upload ECG File</h3>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <p>Drag & drop your ECG file here</p>
+                <span class="file-types">or click to browse (CSV, 1000×12)</span>
+            </div>
+
+            <input type="file" id="ecgFileInput" accept=".csv" />
+
+            <div class="selected-file" id="selectedFile">
+                <span class="file-icon">📄</span>
+                <span class="file-name" id="fileName"></span>
+                <button class="remove-file" id="removeFile">✕</button>
+            </div>
+
+            <button class="analyze-btn" id="analyzeBtn" disabled>
+                <span class="btn-text">Analyze ECG</span>
+                <span class="spinner"></span>
+            </button>
+
+            <div class="instructions">
+                <h4>⚠️ Important</h4>
+                <ul>
+                    <li>File must be 12-lead ECG format (1000 timesteps × 12 leads)</li>
+                    <li>No header row - raw numeric data only</li>
+                    <li>Lead II will be extracted for RR interval analysis</li>
+                    <li>Baseline wander will be automatically filtered</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="card results-card" id="resultsCard">
+            <div class="card-header">
+                <div class="icon">📋</div>
+                <h3>Analysis Results</h3>
+            </div>
+
+            <div class="prediction-result" id="predictionResult">
+                <div class="result-icon">❓</div>
+                <h2>Waiting...</h2>
+                <div class="confidence">Upload ECG to begin</div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value" id="cvValue">-</div>
+                    <div class="metric-label">RR CV (%)</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" id="rPeaksValue">-</div>
+                    <div class="metric-label">R-Peaks</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" id="mlConfidence">-</div>
+                    <div class="metric-label">ML Confidence</div>
+                </div>
+            </div>
+
+            <span class="method-badge" id="methodBadge">
+                Waiting...
+            </span>
+
+            <div class="clinical-reason">
+                <h4>Clinical Reasoning</h4>
+                <p id="clinicalReason">Upload an ECG file to see the analysis.</p>
+            </div>
+
+            <div class="chart-container" style="margin-top: 1.5rem;">
+                <div class="chart-placeholder">
+                    Lead II waveform visualization<br>
+                    <small>with attention heatmap overlay</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM Elements
+    const uploadArea = document.getElementById('uploadArea');
+    const ecgFileInput = document.getElementById('ecgFileInput');
+    const selectedFile = document.getElementById('selectedFile');
+    const fileName = document.getElementById('fileName');
+    const removeFile = document.getElementById('removeFile');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resultsCard = document.getElementById('resultsCard');
+    const predictionResult = document.getElementById('predictionResult');
+    const methodBadge = document.getElementById('methodBadge');
+    const clinicalReason = document.getElementById('clinicalReason');
+
+    let currentFile = null;
+
+    // Upload area click
+    uploadArea.addEventListener('click', () => ecgFileInput.click());
+
+    // File input change
+    ecgFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    // Remove file
+    removeFile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetUpload();
+    });
+
+    function handleFile(file) {
+        if (!file.name.endsWith('.csv')) {
+            showToast('Please upload a CSV file', 'error');
+            return;
+        }
+        
+        currentFile = file;
+        fileName.textContent = file.name;
+        selectedFile.classList.add('show');
+        uploadArea.style.display = 'none';
+        analyzeBtn.disabled = false;
+    }
+
+    function resetUpload() {
+        currentFile = null;
+        ecgFileInput.value = '';
+        selectedFile.classList.remove('show');
+        uploadArea.style.display = 'block';
+        analyzeBtn.disabled = true;
+        resultsCard.classList.remove('show');
+    }
+
+    // Analyze button
+    analyzeBtn.addEventListener('click', async () => {
+        if (!currentFile) return;
+
+        analyzeBtn.classList.add('loading');
+        analyzeBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', currentFile);
+        formData.append('csrf_token', '{{ csrf_token() }}');
+
+        try {
+            const response = await fetch('/api/ecg/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                displayResults(data);
+            } else {
+                showToast(data.error || 'Analysis failed', 'error');
+            }
+        } catch (error) {
+            showToast('Network error: ' + error.message, 'error');
+        } finally {
+            analyzeBtn.classList.remove('loading');
+            analyzeBtn.disabled = false;
+        }
+    });
+
+    function displayResults(data) {
+        resultsCard.classList.add('show');
+
+        // Prediction result
+        const isNormal = data.prediction === 'Normal';
+        predictionResult.className = 'prediction-result ' + (isNormal ? 'normal' : 'arrhythmia');
+        predictionResult.innerHTML = `
+            <div class="result-icon">${isNormal ? '✅' : '⚠️'}</div>
+            <h2>${data.prediction}</h2>
+            <div class="confidence">Confidence: ${(data.confidence * 100).toFixed(1)}%</div>
+        `;
+
+        // Method badge
+        methodBadge.className = 'method-badge ' + (data.method === 'ml' ? 'ml' : 'clinical');
+        methodBadge.innerHTML = data.method === 'ml' 
+            ? '🤖 ML Model Decision' 
+            : '⚕️ Clinical Override';
+
+        // Metrics
+        document.getElementById('cvValue').textContent = data.cv.toFixed(1);
+        document.getElementById('rPeaksValue').textContent = data.num_r_peaks;
+        document.getElementById('mlConfidence').textContent = (data.ml_confidence * 100).toFixed(0) + '%';
+
+        // Clinical reason
+        clinicalReason.textContent = data.clinical_reason;
+
+        // Scroll to results
+        resultsCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+</script>
+{% endblock %}

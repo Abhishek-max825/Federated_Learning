@@ -56,13 +56,12 @@ def seed_data():
         admin_role = Role.query.filter_by(name='Admin').first()
         admin = User.query.filter_by(username='admin').first()
         if admin is None:
-            admin_pw = generate_strong_password()
+            admin_pw = 'admin123'
             admin = User(username='admin', email='admin@example.com', role=admin_role)
             admin.set_password(admin_pw)
             db.session.add(admin)
             db.session.commit()
             print(f"Admin user seeded. Password: {admin_pw}")
-            print("  >>> SAVE THIS PASSWORD — it will NOT be shown again! <<<")
         else:
             print("Admin user already exists.")
 
@@ -70,28 +69,27 @@ def seed_data():
         doctor_role = Role.query.filter_by(name='Doctor').first()
         doctor = User.query.filter_by(username='doctor').first()
         if doctor is None:
-            doctor_pw = generate_strong_password()
+            doctor_pw = 'doctor123'
             doctor = User(username='doctor', email='doctor@example.com', role=doctor_role)
             doctor.set_password(doctor_pw)
             db.session.add(doctor)
             db.session.commit()
             print(f"Doctor user seeded. Password: {doctor_pw}")
-            print("  >>> SAVE THIS PASSWORD — it will NOT be shown again! <<<")
         else:
             print("Doctor user already exists.")
 
         # Create Hospital Users (one per hospital)
         hospital_role = Role.query.filter_by(name='Hospital Node').first()
         hospital_users = [
-            {'username': 'hospital',  'email': 'hospital@example.com',  'hospital_name': 'Hospital Node 1'},
-            {'username': 'hospital2', 'email': 'hospital2@example.com', 'hospital_name': 'Hospital Node 2'},
-            {'username': 'hospital3', 'email': 'hospital3@example.com', 'hospital_name': 'Hospital Node 3'},
+            {'username': 'hospital',  'email': 'hospital@example.com',  'hospital_name': 'Hospital Node 1', 'password': 'hospital123'},
+            {'username': 'hospital2', 'email': 'hospital2@example.com', 'hospital_name': 'Hospital Node 2', 'password': 'hospital2123'},
+            {'username': 'hospital3', 'email': 'hospital3@example.com', 'hospital_name': 'Hospital Node 3', 'password': 'hospital3123'},
         ]
         for h_user_data in hospital_users:
             h_obj = Hospital.query.filter_by(name=h_user_data['hospital_name']).first()
             user = User.query.filter_by(username=h_user_data['username']).first()
             if user is None:
-                h_pw = generate_strong_password()
+                h_pw = h_user_data['password']
                 user = User(
                     username=h_user_data['username'],
                     email=h_user_data['email'],
@@ -100,9 +98,7 @@ def seed_data():
                 )
                 user.set_password(h_pw)
                 db.session.add(user)
-                print(f"Hospital user '{h_user_data['username']}' seeded -> {h_user_data['hospital_name']}.")
-                print(f"  Password: {h_pw}")
-                print("  >>> SAVE THIS PASSWORD — it will NOT be shown again! <<<")
+                print(f"Hospital user '{h_user_data['username']}' seeded -> {h_user_data['hospital_name']}. Password: {h_pw}")
             else:
                 # Fix existing users: assign hospital if missing
                 if user.hospital_id is None and h_obj:

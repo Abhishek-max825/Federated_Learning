@@ -14,7 +14,7 @@ def index():
     if current_user.role.name == 'Admin':
         return redirect(url_for('main.admin_dashboard'))
     elif current_user.role.name == 'Doctor':
-        return redirect(url_for('main.doctor_dashboard'))
+        return redirect(url_for('main.doctor_mode_selector'))
     elif current_user.role.name == 'Hospital Node':
         return redirect(url_for('main.hospital_dashboard'))
     return redirect(url_for('auth.login'))
@@ -73,3 +73,33 @@ def doctor_dashboard():
 @hospital_required
 def hospital_dashboard():
     return render_template('hospital/dashboard.html', title='Hospital Dashboard')
+
+
+@bp.route('/hospital/ecg-upload')
+@login_required
+@hospital_required
+def hospital_ecg_upload():
+    """Hospital ECG file upload for FL training."""
+    return render_template('hospital/ecg_upload.html', title='Upload ECG Files')
+
+
+# ============================================================================
+# ECG Routes
+# ============================================================================
+
+@bp.route('/doctor/mode-selector')
+@login_required
+def doctor_mode_selector():
+    """Doctor mode selection: Heart Disease or ECG Arrhythmia."""
+    if current_user.role.name != 'Doctor':
+        return redirect(url_for('auth.login'))
+    return render_template('doctor/mode_selector.html', title='Select Prediction Mode')
+
+
+@bp.route('/doctor/ecg-dashboard')
+@login_required
+def ecg_dashboard():
+    """ECG Arrhythmia Detection Dashboard."""
+    if current_user.role.name != 'Doctor':
+        return redirect(url_for('auth.login'))
+    return render_template('doctor/ecg_dashboard.html', title='ECG Analysis')

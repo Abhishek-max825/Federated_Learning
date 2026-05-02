@@ -263,13 +263,24 @@
             <p>Monitor clients, control training rounds, and manage platform users in one streamlined view.</p>
         </section>
 
+        <!-- FL Mode Tabs -->
+        <div class="fl-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+            <button class="fl-tab active" data-tab="heart" style="padding: 0.75rem 1.5rem; border: none; background: rgba(239, 68, 68, 0.2); color: #fff; border-radius: 0.5rem 0.5rem 0 0; cursor: pointer; font-weight: 600;">
+                ❤️ Heart Disease FL
+            </button>
+            <button class="fl-tab" data-tab="ecg" style="padding: 0.75rem 1.5rem; border: none; background: transparent; color: #94a3b8; border-radius: 0.5rem 0.5rem 0 0; cursor: pointer; font-weight: 600;">
+                📊 ECG Arrhythmia FL
+            </button>
+        </div>
+
         <div class="admin-grid">
-            <section id="fl-controls" class="widget span-6">
-                <div class="widget-header">
-                    <h5>Federated Learning Controls</h5>
+            <!-- Heart Disease FL Module (Tab 1) -->
+            <section id="fl-controls" class="widget span-6 fl-tab-content" data-content="heart">
+                <div class="widget-header" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(30, 41, 59, 0.8) 100%);">
+                    <h5>❤️ Heart Disease FL (FedAvg)</h5>
                 </div>
                 <div class="widget-body">
-                    <p class="text-secondary mb-3">Manage training flow and global model lifecycle.</p>
+                    <p class="text-secondary mb-3">Manage Heart Disease prediction model training.</p>
                     <div class="action-row">
                         <button id="start-round-btn" class="btn btn-primary">Start Round</button>
                         <button id="aggregate-btn" class="btn btn-success">Aggregate</button>
@@ -279,10 +290,46 @@
                 </div>
             </section>
 
-            <section id="system-status" class="widget span-6">
+            <!-- ECG Arrhythmia FL Module (Tab 2 - Hidden by default) -->
+            <section id="ecg-fl-controls" class="widget span-6 fl-tab-content" data-content="ecg" style="display: none;">
+                <div class="widget-header" style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(30, 41, 59, 0.8) 100%);">
+                    <h5>📊 ECG Arrhythmia FL (FedBN)</h5>
+                </div>
+                <div class="widget-body">
+                    <p class="text-secondary mb-3">Manage ECG arrhythmia detection model training.</p>
+                    <div class="action-row">
+                        <button id="ecg-start-round-btn" class="btn btn-primary" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">Start Round</button>
+                        <button id="ecg-aggregate-btn" class="btn btn-success" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Aggregate</button>
+                        <button id="ecg-reset-fl-btn" class="btn btn-danger">Reset</button>
+                    </div>
+                    <div id="ecg-action-status" class="mt-3"></div>
+                </div>
+            </section>
+
+            <!-- ECG System Status (Tab 2) -->
+            <section id="ecg-system-status" class="widget span-6 fl-tab-content" data-content="ecg" style="display: none;">
                 <div class="widget-header">
                     <h5>System Status Metrics</h5>
-                    <span class="badge badge-soft">Auto-Refresh</span>
+                    <button id="ecg-auto-refresh-btn" class="badge badge-soft" style="cursor: pointer; border: none; background: rgba(16, 185, 129, 0.2); color: #10b981;" onclick="toggleAutoRefresh('ecg')">Auto-Refresh: ON</button>
+                </div>
+                <div class="widget-body">
+                    <div class="status-grid" id="ecg-status-list">
+                        <div class="status-tile">
+                            <span class="label">Current Round</span>
+                            <span class="value" id="ecg-round-num">-</span>
+                        </div>
+                        <div class="status-tile">
+                            <span class="label">Clients Updated</span>
+                            <span class="value" id="ecg-clients-updated">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Heart System Status (Tab 1) -->
+            <section id="system-status" class="widget span-6 fl-tab-content" data-content="heart">
+                <div class="widget-header">
+                    <h5>System Status Metrics</h5>
+                    <button id="heart-auto-refresh-btn" class="badge badge-soft" style="cursor: pointer; border: none; background: rgba(16, 185, 129, 0.2); color: #10b981;" onclick="toggleAutoRefresh('heart')">Auto-Refresh: ON</button>
                 </div>
                 <div class="widget-body">
                     <div class="status-grid" id="status-list">
@@ -298,7 +345,20 @@
                 </div>
             </section>
 
-            <section id="client-status" class="widget span-12">
+            <!-- ECG Client Status (Tab 2) -->
+            <section id="ecg-client-status" class="widget span-12 fl-tab-content" data-content="ecg" style="display: none;">
+                <div class="widget-header">
+                    <h5>Client Node Status</h5>
+                </div>
+                <div class="widget-body">
+                    <div id="ecg-client-status-container">
+                        <p class="text-muted mb-0">Loading client status...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Heart Client Status (Tab 1) -->
+            <section id="client-status" class="widget span-12 fl-tab-content" data-content="heart">
                 <div class="widget-header">
                     <h5>Client Node Status</h5>
                 </div>
@@ -309,7 +369,8 @@
                 </div>
             </section>
 
-            <section id="model-charts" class="widget span-6">
+            <!-- Heart Charts (Tab 1) -->
+            <section id="model-charts" class="widget span-6 fl-tab-content" data-content="heart">
                 <div class="widget-header">
                     <h5>Model Accuracy</h5>
                 </div>
@@ -318,7 +379,7 @@
                 </div>
             </section>
 
-            <section class="widget span-6">
+            <section id="loss-chart-section" class="widget span-6 fl-tab-content" data-content="heart">
                 <div class="widget-header">
                     <h5>Training Loss</h5>
                 </div>
@@ -327,12 +388,51 @@
                 </div>
             </section>
 
-            <section id="model-history" class="widget span-12">
+            <section id="model-history" class="widget span-12 fl-tab-content" data-content="heart">
                 <div class="widget-header">
                     <h5>Model History</h5>
                 </div>
                 <div class="widget-body table-wrap">
                     <table class="table table-striped table-sm dashboard-table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Round</th>
+                                <th>Accuracy</th>
+                                <th>Loss</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ECG Charts (Tab 2) -->
+            <section id="ecg-model-charts" class="widget span-6 fl-tab-content" data-content="ecg" style="display: none;">
+                <div class="widget-header">
+                    <h5>Model Accuracy</h5>
+                </div>
+                <div class="widget-body">
+                    <canvas id="ecg-accuracy-chart" class="chart-canvas"></canvas>
+                </div>
+            </section>
+
+            <section id="ecg-loss-chart-section" class="widget span-6 fl-tab-content" data-content="ecg" style="display: none;">
+                <div class="widget-header">
+                    <h5>Training Loss</h5>
+                </div>
+                <div class="widget-body">
+                    <canvas id="ecg-loss-chart" class="chart-canvas"></canvas>
+                </div>
+            </section>
+
+            <!-- ECG Model History (Tab 2) -->
+            <section id="ecg-model-history" class="widget span-12 fl-tab-content" data-content="ecg" style="display: none;">
+                <div class="widget-header">
+                    <h5>Model History</h5>
+                </div>
+                <div class="widget-body table-wrap">
+                    <table class="table table-striped table-sm dashboard-table" id="ecg-history-table">
                         <thead>
                             <tr>
                                 <th>Round</th>
@@ -728,6 +828,75 @@
         }
     }
 
+    // ===== ECG Charts =====
+    let ecgAccuracyChart, ecgLossChart;
+
+    function updateEcgCharts(history) {
+        const rounds = history.rounds;
+
+        if (!ecgAccuracyChart) {
+            const ctx1 = document.getElementById('ecg-accuracy-chart').getContext('2d');
+            
+            const gradientAcc = ctx1.createLinearGradient(0, 0, 0, 300);
+            gradientAcc.addColorStop(0, 'rgba(14, 165, 233, 0.45)');
+            gradientAcc.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+
+            ecgAccuracyChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: rounds,
+                    datasets: [{
+                        label: 'Accuracy',
+                        data: history.accuracy,
+                        borderColor: '#0ea5e9',
+                        backgroundColor: gradientAcc,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#0ea5e9',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#0ea5e9'
+                    }]
+                },
+                options: chartOptions('#0ea5e9')
+            });
+
+            const ctx2 = document.getElementById('ecg-loss-chart').getContext('2d');
+            
+            const gradientLoss = ctx2.createLinearGradient(0, 0, 0, 300);
+            gradientLoss.addColorStop(0, 'rgba(168, 85, 247, 0.45)');
+            gradientLoss.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+
+            ecgLossChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: rounds,
+                    datasets: [{
+                        label: 'Loss',
+                        data: history.loss,
+                        borderColor: '#a855f7',
+                        backgroundColor: gradientLoss,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#a855f7',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#a855f7'
+                    }]
+                },
+                options: chartOptions('#a855f7')
+            });
+        } else {
+            ecgAccuracyChart.data.labels = rounds;
+            ecgAccuracyChart.data.datasets[0].data = history.accuracy;
+            ecgAccuracyChart.update();
+
+            ecgLossChart.data.labels = rounds;
+            ecgLossChart.data.datasets[0].data = history.loss;
+            ecgLossChart.update();
+        }
+    }
+
     // ===== FL Control Buttons =====
     document.getElementById('start-round-btn').onclick = async () => {
         const res = await fetch('/api/fl/start_round', { method: 'POST', credentials: 'same-origin' });
@@ -754,6 +923,23 @@
         } catch (e) {
             console.error(e);
             showToast('Network error during rollback', 'error');
+        }
+    }
+
+    async function rollbackEcgModel(round) {
+        if (!confirm(`Are you sure you want to rollback ECG to Round ${round}? This will delete subsequent history and model weights.`)) return;
+        try {
+            const res = await fetch(`/api/ecg/rollback/${round}`, { method: 'POST', credentials: 'same-origin' });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message, 'success');
+                updateEcgStatus();
+            } else {
+                showToast(data.error || 'Error rolling back ECG', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error during ECG rollback', 'error');
         }
     }
 
@@ -800,6 +986,64 @@
         }
     };
 
+    // ECG FL Button Handlers
+    document.getElementById('ecg-start-round-btn').onclick = async () => {
+        const res = await fetch('/api/ecg/start_round', { method: 'POST', credentials: 'same-origin' });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message, 'success');
+            document.getElementById('ecg-action-status').innerHTML = '<span class="text-success">ECG Round started!</span>';
+        } else {
+            showToast(data.error || 'Error starting ECG round', 'error');
+            document.getElementById('ecg-action-status').innerHTML = '<span class="text-danger">' + (data.error || 'Error') + '</span>';
+        }
+    };
+
+    document.getElementById('ecg-aggregate-btn').onclick = async () => {
+        try {
+            const res = await fetch('/api/ecg/aggregate', { method: 'POST', credentials: 'same-origin' });
+            if (res.status === 403 || res.status === 401) {
+                showToast('Session expired or not authorized. Please log in as Admin again.', 'error');
+                return;
+            }
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message, 'success');
+                document.getElementById('ecg-action-status').innerHTML = '<span class="text-success">ECG aggregated! Round: ' + data.round + '</span>';
+            } else {
+                showToast(data.error || 'Error aggregating ECG', 'error');
+                document.getElementById('ecg-action-status').innerHTML = '<span class="text-danger">' + (data.error || 'Error') + '</span>';
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error. Please refresh and try again.', 'error');
+        }
+    };
+
+    document.getElementById('ecg-reset-fl-btn').onclick = async () => {
+        if (!confirm('Are you sure you want to reset the ECG Federated Learning state? All progress will be lost.')) return;
+        try {
+            // Call ECG reset endpoint
+            const res = await fetch('/api/ecg/reset', { method: 'POST', credentials: 'same-origin' });
+            if (res.status === 403 || res.status === 401) {
+                showToast('Session expired or not authorized. Please log in as Admin again.', 'error');
+                return;
+            }
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message, 'success');
+                document.getElementById('ecg-action-status').innerHTML = '<span class="text-success">ECG FL reset complete</span>';
+                updateEcgStatus();
+                updateAuditLogs();
+            } else {
+                showToast(data.error || 'Error resetting ECG FL', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error. Please refresh and try again.', 'error');
+        }
+    };
+
     document.getElementById('clear-logs-btn').onclick = async () => {
         if (!confirm('Are you sure you want to clear all audit logs?')) return;
         const res = await fetch('/api/audit-logs', { method: 'DELETE', credentials: 'same-origin' });
@@ -812,15 +1056,149 @@
         }
     };
 
+    // ===== ECG Status + Client Status (auto-refresh) =====
+    async function updateEcgStatus() {
+        try {
+            const res = await fetch('/api/ecg/status', { credentials: 'same-origin' });
+            if (!res.ok) return;
+            const data = await res.json();
+            document.getElementById('ecg-round-num').innerText = data.round || '-';
+            document.getElementById('ecg-clients-updated').innerText = data.clients_updated || '0';
+
+            // Fetch ECG history and update charts
+            const histRes = await fetch('/api/ecg/history', { credentials: 'same-origin' });
+            const history = await histRes.json();
+            updateEcgCharts(history);
+
+            // Update ECG history table
+            const tbody = document.querySelector('#ecg-history-table tbody');
+            tbody.innerHTML = '';
+            for (let i = 0; i < history.rounds.length; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>Round ${history.rounds[i]}</td>
+                    <td>${(history.accuracy[i] * 100).toFixed(2)}%</td>
+                    <td>${(history.loss[i]).toFixed(4)}</td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="rollbackEcgModel(${history.rounds[i]})">Rollback to Round ${history.rounds[i]}</button></td>
+                `;
+                tbody.appendChild(tr);
+            }
+        } catch (e) {
+            console.error('Error loading ECG status:', e);
+        }
+    }
+
+    async function updateEcgClientStatus() {
+        try {
+            const res = await fetch('/api/clients/status', { credentials: 'same-origin' });
+            if (!res.ok) return;
+            const clients = await res.json();
+            const container = document.getElementById('ecg-client-status-container');
+
+            if (clients.length === 0) {
+                container.innerHTML = '<p class="text-muted mb-0">No Hospital Node clients registered.</p>';
+                return;
+            }
+
+            let html = '<div class="client-grid">';
+            for (const client of clients) {
+                const statusClass = client.is_online ? 'client-status-online' : 'client-status-offline';
+                const statusText = client.is_online ? 'Online' : 'Offline';
+                html += `
+                    <div class="client-node-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="client-node-name">${client.hospital}</div>
+                                <div class="client-node-meta">${client.username}</div>
+                            </div>
+                            <span class="client-status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="text-secondary" style="font-size: 0.75rem;">Last seen: ${client.last_seen}</div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        } catch (e) {
+            console.error('Error loading ECG client status:', e);
+        }
+    }
+
+    // ===== Tab Switching =====
+    document.querySelectorAll('.fl-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active from all tabs
+            document.querySelectorAll('.fl-tab').forEach(t => {
+                t.classList.remove('active');
+                t.style.background = 'transparent';
+                t.style.color = '#94a3b8';
+            });
+            // Hide all content
+            document.querySelectorAll('.fl-tab-content').forEach(c => c.style.display = 'none');
+            
+            // Activate clicked tab
+            tab.classList.add('active');
+            const tabName = tab.dataset.tab;
+            if (tabName === 'heart') {
+                tab.style.background = 'rgba(239, 68, 68, 0.2)';
+                tab.style.color = '#fff';
+            } else {
+                tab.style.background = 'rgba(14, 165, 233, 0.2)';
+                tab.style.color = '#fff';
+            }
+            
+            // Show all content for selected tab
+            document.querySelectorAll(`.fl-tab-content[data-content="${tabName}"]`).forEach(c => {
+                c.style.display = 'block';
+            });
+        });
+    });
+
+    // ===== Auto-Refresh Toggle =====
+    let autoRefreshState = { heart: true, ecg: true };
+    let refreshInterval;
+
+    function toggleAutoRefresh(mode) {
+        autoRefreshState[mode] = !autoRefreshState[mode];
+        const btn = document.getElementById(mode + '-auto-refresh-btn');
+        if (autoRefreshState[mode]) {
+            btn.innerText = 'Auto-Refresh: ON';
+            btn.style.background = 'rgba(16, 185, 129, 0.2)';
+            btn.style.color = '#10b981';
+        } else {
+            btn.innerText = 'Auto-Refresh: OFF';
+            btn.style.background = 'rgba(239, 68, 68, 0.2)';
+            btn.style.color = '#ef4444';
+        }
+    }
+
     // ===== Auto-Refresh: Poll every 5 seconds =====
     function refreshAll() {
-        updateStatus();
+        // Only refresh Heart widgets if enabled and Heart tab is visible
+        const heartTabVisible = document.getElementById('system-status').style.display !== 'none';
+        if (autoRefreshState.heart && heartTabVisible) {
+            updateStatus();
+            updateClientStatus();
+        }
+        
+        // Only refresh ECG widgets if enabled and ECG tab is visible
+        const ecgTabVisible = document.getElementById('ecg-system-status').style.display !== 'none';
+        if (autoRefreshState.ecg && ecgTabVisible) {
+            updateEcgStatus();
+            updateEcgClientStatus();
+        }
+        
+        // Always refresh audit logs
         updateAuditLogs();
-        updateClientStatus();
     }
+
+    // Show Heart content by default on page load
+    document.querySelectorAll('.fl-tab-content[data-content="heart"]').forEach(c => {
+        c.style.display = 'block';
+    });
 
     refreshAll();
     loadUsers();
-    setInterval(refreshAll, 5000);
+    refreshInterval = setInterval(refreshAll, 5000);
 </script>
 {% endblock %}

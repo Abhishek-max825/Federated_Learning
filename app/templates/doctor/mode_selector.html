@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #0d1117;
+        background-image: 
+            radial-gradient(ellipse at 10% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+            radial-gradient(ellipse at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+        min-height: 100vh;
+        color: #e2e8f0;
+    }
+
+    .mode-selector-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+        color: #64748b;
+        font-size: 1.125rem;
+    }
+
+    .mode-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+    }
+
+    .mode-card {
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1.5rem;
+        padding: 3rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .mode-card:hover {
+        transform: translateY(-8px);
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .mode-card.heart {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(30, 41, 59, 0.8) 100%);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .mode-card.heart:hover {
+        border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .mode-card.ecg {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(30, 41, 59, 0.8) 100%);
+        border-color: rgba(14, 165, 233, 0.2);
+    }
+
+    .mode-card.ecg:hover {
+        border-color: rgba(14, 165, 233, 0.4);
+    }
+
+    .icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .mode-card.heart .icon {
+        background: rgba(239, 68, 68, 0.2);
+    }
+
+    .mode-card.ecg .icon {
+        background: rgba(14, 165, 233, 0.2);
+    }
+
+    .mode-card h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .mode-card p {
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .features li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #94a3b8;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .features li::before {
+        content: "✓";
+        color: #10b981;
+        font-weight: bold;
+    }
+
+    .cta-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        padding: 0.875rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .mode-card.heart .cta-button {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+    }
+
+    .mode-card.ecg .cta-button {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        color: white;
+    }
+
+    .cta-button:hover {
+        transform: translateX(4px);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+    }
+
+    .mode-card.heart .badge {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+    }
+
+    .mode-card.ecg .badge {
+        background: rgba(14, 165, 233, 0.2);
+        color: #0ea5e9;
+    }
+</style>
+
+<div class="mode-selector-container">
+    <div class="header">
+        <h1>🩺 Select Prediction Mode</h1>
+        <p>Choose the appropriate diagnostic tool for your patient assessment</p>
+    </div>
+
+    <div class="mode-cards">
+        <!-- Heart Disease Prediction -->
+        <a href="{{ url_for('main.doctor_dashboard') }}" class="mode-card heart">
+            <span class="badge">Tabular Data</span>
+            <div class="icon">❤️</div>
+            <h2>Heart Disease Prediction</h2>
+            <p>Predict coronary heart disease risk based on patient demographics, lifestyle factors, and medical history.</p>
+            <ul class="features">
+                <li>Risk assessment from 7 clinical factors</li>
+                <li>BMI, age, smoking, diabetes analysis</li>
+                <li>Instant probability score</li>
+            </ul>
+            <span class="cta-button">
+                Start Heart Assessment →
+            </span>
+        </a>
+
+        <!-- ECG Arrhythmia Detection -->
+        <a href="{{ url_for('main.ecg_dashboard') }}" class="mode-card ecg">
+            <span class="badge">Time-Series</span>
+            <div class="icon">📊</div>
+            <h2>ECG Arrhythmia Detection</h2>
+            <p>Detect cardiac arrhythmias using 12-lead ECG waveform analysis with hybrid ML + clinical decision system.</p>
+            <ul class="features">
+                <li>12-lead ECG analysis (1000 samples)</li>
+                <li>Hybrid ML + RR interval validation</li>
+                <li>Attention heatmap visualization</li>
+            </ul>
+            <span class="cta-button">
+                Start ECG Analysis →
+            </span>
+        </a>
+    </div>
+</div>
+
+<script>
+    // Add click tracking for analytics
+    document.querySelectorAll('.mode-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            const mode = this.classList.contains('heart') ? 'heart' : 'ecg';
+            console.log('Selected mode:', mode);
+        });
+    });
+</script>
+{% endblock %}

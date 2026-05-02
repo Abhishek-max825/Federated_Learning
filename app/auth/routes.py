@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, session
 from urllib.parse import urlparse
 from flask_login import login_user, logout_user, current_user
 from app import db, limiter
@@ -18,6 +18,8 @@ def login():
             flash('Invalid username or password')
             return redirect(url_for('auth.login'))
         login_user(user, remember=form.remember_me.data)
+        # Make session permanent so it persists across server restarts
+        session.permanent = True
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
             if user.role.name == 'Admin':
