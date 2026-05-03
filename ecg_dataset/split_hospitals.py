@@ -5,16 +5,18 @@ This script:
 1. Reads PTBXL metadata
 2. Filters to Normal/Arrhythmia binary classification
 3. Splits records deterministically into 3 hospital folders
-4. Copies WFDB files (.dat + .hea) to each hospital
-5. Creates hospital-specific metadata CSVs
+4. Creates hospital-specific metadata CSVs (NO file copying)
+
+Note: WFDB signal files (.dat/.hea) remain in the shared records100/ directory.
+Each hospital metadata.csv points to those shared files via relative paths.
 
 Usage:
     python split_hospitals.py
 
 Output:
-    ecg_dataset/hospital_1/  - First 1/3 of records
-    ecg_dataset/hospital_2/  - Middle 1/3 of records
-    ecg_dataset/hospital_3/  - Last 1/3 of records
+    ecg_dataset/hospital_1/metadata.csv
+    ecg_dataset/hospital_2/metadata.csv
+    ecg_dataset/hospital_3/metadata.csv
 """
 
 import pandas as pd
@@ -119,6 +121,7 @@ def assign_hospital_by_record_id(ecg_id):
 
 def copy_wfdb_files(record_id, filename_lr, hospital_dir):
     """
+    [DEPRECATED — not called. WFDB files remain in shared records100 folder.]
     Copy WFDB files (.dat and .hea) for a record.
     
     Args:
@@ -217,10 +220,12 @@ def split_dataset():
         normal_df = hosp_df[hosp_df['label'] == 0]
         arrhy_df = hosp_df[hosp_df['label'] == 1]
         
-        # Undersample majority class to match minority
+        # Undersample whichever class is larger to match minority
         target = min(n_normal, n_arrhy)
         if len(arrhy_df) > target:
             arrhy_df = arrhy_df.sample(n=target, random_state=42)
+        if len(normal_df) > target:
+            normal_df = normal_df.sample(n=target, random_state=42)
         
         hosp_balanced = pd.concat([normal_df, arrhy_df]).sample(frac=1, random_state=42)
         balanced_dfs.append((hosp_id, hosp_balanced))
@@ -257,15 +262,18 @@ def split_dataset():
     with open(summary_path, "w") as f:
         f.write("ECG Dataset Split Summary\n")
         f.write("=" * 60 + "\n\n")
-        f.write(f"Source: {PTBXL_CSV}\n")
-        f.write(f"Total classifiable records: {len(df_classified)}\n\n")
+        f.write(f"Source: ./ptbxl_database.csv\n")
+        f.write(f"Total classifiable records: {len(df_classified)}\n")
+        total_balanced = sum(len(hdf) for _, hdf in balanced_dfs)
+        f.write(f"Total balanced records assigned: {total_balanced}\n")
+        f.write(f"(Difference: {len(df_classified) - total_balanced} records dropped during balancing)\n\n")
         
         for hosp_id, hosp_df in balanced_dfs:
             f.write(f"Hospital {hosp_id}:\n")
             f.write(f"  Records: {len(hosp_df)}\n")
             f.write(f"  Normal: {sum(hosp_df['label'] == 0)}\n")
             f.write(f"  Arrhythmia: {sum(hosp_df['label'] == 1)}\n")
-            f.write(f"  Location: {HOSPITALS[hosp_id]}\n\n")
+            f.write(f"  Location: ./hospital_{hosp_id}/\n\n")
     
     print(f"  Summary saved: {summary_path}")
     

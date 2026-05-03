@@ -186,7 +186,7 @@
 
 <div class="mode-selector-container">
     <div class="header">
-        <h1>🩺 Select Prediction Mode</h1>
+        <h1><span role="img" aria-label="stethoscope">🩺</span> Select Prediction Mode</h1>
         <p>Choose the appropriate diagnostic tool for your patient assessment</p>
     </div>
 
@@ -194,7 +194,7 @@
         <!-- Heart Disease Prediction -->
         <a href="{{ url_for('main.doctor_dashboard') }}" class="mode-card heart">
             <span class="badge">Tabular Data</span>
-            <div class="icon">❤️</div>
+            <div class="icon"><span role="img" aria-label="heart">❤️</span></div>
             <h2>Heart Disease Prediction</h2>
             <p>Predict coronary heart disease risk based on patient demographics, lifestyle factors, and medical history.</p>
             <ul class="features">
@@ -210,7 +210,7 @@
         <!-- ECG Arrhythmia Detection -->
         <a href="{{ url_for('main.ecg_dashboard') }}" class="mode-card ecg">
             <span class="badge">Time-Series</span>
-            <div class="icon">📊</div>
+            <div class="icon"><span role="img" aria-label="ECG chart">📊</span></div>
             <h2>ECG Arrhythmia Detection</h2>
             <p>Detect cardiac arrhythmias using 12-lead ECG waveform analysis with hybrid ML + clinical decision system.</p>
             <ul class="features">
@@ -226,11 +226,10 @@
 </div>
 
 <script>
-    // Add click tracking for analytics
     document.querySelectorAll('.mode-card').forEach(card => {
         card.addEventListener('click', function(e) {
             const mode = this.classList.contains('heart') ? 'heart' : 'ecg';
-            console.log('Selected mode:', mode);
+            // No logging in production — extend here with a privacy-safe analytics call if needed
         });
     });
 </script>

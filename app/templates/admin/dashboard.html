@@ -512,8 +512,10 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Password</label>
-                        <input type="password" class="form-control" name="password" required>
+                        <input type="password" class="form-control" name="password" required minlength="8">
+                        <div class="form-text">Min 8 chars, must include uppercase, lowercase, digit and special character.</div>
                     </div>
+                    <div id="addUserError" class="alert alert-danger d-none" role="alert"></div>
                     <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select class="form-select" name="role" required>
@@ -529,7 +531,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="document.getElementById('addUserError').classList.add('d-none');">Close</button>
                 <button type="button" class="btn btn-primary" onclick="submitAddUser()">Save</button>
             </div>
         </div>
@@ -674,15 +676,20 @@
             });
             const result = await res.json();
 
+            const errEl = document.getElementById('addUserError');
             if (res.ok) {
                 showToast(result.message, 'success');
+                errEl.classList.add('d-none');
+                errEl.textContent = '';
                 const modalEl = document.getElementById('addUserModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 modal.hide();
                 form.reset();
                 loadUsers();
             } else {
-                showToast(result.error, 'error');
+                errEl.textContent = result.error || 'Failed to create user.';
+                errEl.classList.remove('d-none');
+                showToast(result.error || 'Failed to create user.', 'error');
             }
         } catch (e) {
             console.error(e);
@@ -832,6 +839,7 @@
     let ecgAccuracyChart, ecgLossChart;
 
     function updateEcgCharts(history) {
+        if (!history || !Array.isArray(history.rounds) || history.rounds.length === 0) return;
         const rounds = history.rounds;
 
         if (!ecgAccuracyChart) {
@@ -988,14 +996,27 @@
 
     // ECG FL Button Handlers
     document.getElementById('ecg-start-round-btn').onclick = async () => {
-        const res = await fetch('/api/ecg/start_round', { method: 'POST', credentials: 'same-origin' });
-        const data = await res.json();
-        if (res.ok) {
-            showToast(data.message, 'success');
-            document.getElementById('ecg-action-status').innerHTML = '<span class="text-success">ECG Round started!</span>';
-        } else {
-            showToast(data.error || 'Error starting ECG round', 'error');
-            document.getElementById('ecg-action-status').innerHTML = '<span class="text-danger">' + (data.error || 'Error') + '</span>';
+        try {
+            const res = await fetch('/api/ecg/start_round', { method: 'POST', credentials: 'same-origin' });
+            if (res.status === 401 || res.status === 403) {
+                showToast('Session expired or not authorized. Please log in as Admin again.', 'error');
+                return;
+            }
+            const data = await res.json();
+            const statusEl = document.getElementById('ecg-action-status');
+            if (res.ok) {
+                showToast(data.message, 'success');
+                statusEl.textContent = 'ECG Round started!';
+                statusEl.className = 'text-success';
+                updateEcgStatus();
+            } else {
+                showToast(data.error || 'Error starting ECG round', 'error');
+                statusEl.textContent = data.error || 'Error';
+                statusEl.className = 'text-danger';
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Network error. Please refresh and try again.', 'error');
         }
     };
 
@@ -1007,12 +1028,15 @@
                 return;
             }
             const data = await res.json();
+            const statusEl = document.getElementById('ecg-action-status');
             if (res.ok) {
                 showToast(data.message, 'success');
-                document.getElementById('ecg-action-status').innerHTML = '<span class="text-success">ECG aggregated! Round: ' + data.round + '</span>';
+                statusEl.textContent = 'ECG aggregated! Round: ' + data.round;
+                statusEl.className = 'text-success';
             } else {
                 showToast(data.error || 'Error aggregating ECG', 'error');
-                document.getElementById('ecg-action-status').innerHTML = '<span class="text-danger">' + (data.error || 'Error') + '</span>';
+                statusEl.textContent = data.error || 'Error';
+                statusEl.className = 'text-danger';
             }
         } catch (e) {
             console.error(e);
@@ -1067,12 +1091,14 @@
 
             // Fetch ECG history and update charts
             const histRes = await fetch('/api/ecg/history', { credentials: 'same-origin' });
+            if (!histRes.ok) return;
             const history = await histRes.json();
             updateEcgCharts(history);
 
             // Update ECG history table
             const tbody = document.querySelector('#ecg-history-table tbody');
             tbody.innerHTML = '';
+            if (!history || !Array.isArray(history.rounds)) return;
             for (let i = 0; i < history.rounds.length; i++) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `

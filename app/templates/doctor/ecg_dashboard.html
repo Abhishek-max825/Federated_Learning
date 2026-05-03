@@ -427,7 +427,7 @@
                 <h3>Upload ECG File</h3>
             </div>
 
-            <div class="upload-area" id="uploadArea">
+            <div class="upload-area" id="uploadArea" tabindex="0" role="button" aria-label="Upload ECG file">
                 <div class="upload-icon">📁</div>
                 <p>Drag & drop your ECG file here</p>
                 <span class="file-types">or click to browse (CSV, 1000×12)</span>
@@ -553,9 +553,16 @@
         resetUpload();
     });
 
+    uploadArea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            ecgFileInput.click();
+        }
+    });
+
     function handleFile(file) {
-        if (!file.name.endsWith('.csv')) {
-            showToast('Please upload a CSV file', 'error');
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            showStatus('Please upload a CSV file', 'error');
             return;
         }
         
@@ -577,7 +584,11 @@
 
     // Analyze button
     analyzeBtn.addEventListener('click', async () => {
-        if (!currentFile) return;
+        if (!currentFile) {
+            showStatus('Please upload a CSV file before analyzing.', 'error');
+            uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
 
         analyzeBtn.classList.add('loading');
         analyzeBtn.disabled = true;
@@ -613,11 +624,19 @@
         // Prediction result
         const isNormal = data.prediction === 'Normal';
         predictionResult.className = 'prediction-result ' + (isNormal ? 'normal' : 'arrhythmia');
-        predictionResult.innerHTML = `
-            <div class="result-icon">${isNormal ? '✅' : '⚠️'}</div>
-            <h2>${data.prediction}</h2>
-            <div class="confidence">Confidence: ${(data.confidence * 100).toFixed(1)}%</div>
-        `;
+        predictionResult.innerHTML = '';
+        const iconEl = document.createElement('div');
+        iconEl.className = 'result-icon';
+        iconEl.textContent = isNormal ? '✅' : '⚠️';
+        const h2El = document.createElement('h2');
+        h2El.textContent = data.prediction || 'Unknown';
+        const confEl = document.createElement('div');
+        confEl.className = 'confidence';
+        const confVal = typeof data.confidence === 'number' ? (data.confidence * 100).toFixed(1) + '%' : 'N/A';
+        confEl.textContent = 'Confidence: ' + confVal;
+        predictionResult.appendChild(iconEl);
+        predictionResult.appendChild(h2El);
+        predictionResult.appendChild(confEl);
 
         // Method badge
         methodBadge.className = 'method-badge ' + (data.method === 'ml' ? 'ml' : 'clinical');
@@ -626,9 +645,9 @@
             : '⚕️ Clinical Override';
 
         // Metrics
-        document.getElementById('cvValue').textContent = data.cv.toFixed(1);
-        document.getElementById('rPeaksValue').textContent = data.num_r_peaks;
-        document.getElementById('mlConfidence').textContent = (data.ml_confidence * 100).toFixed(0) + '%';
+        document.getElementById('cvValue').textContent = typeof data.cv === 'number' ? data.cv.toFixed(1) : (data.cv ?? 'N/A');
+        document.getElementById('rPeaksValue').textContent = data.num_r_peaks ?? 'N/A';
+        document.getElementById('mlConfidence').textContent = typeof data.ml_confidence === 'number' ? (data.ml_confidence * 100).toFixed(0) + '%' : 'N/A';
 
         // Clinical reason
         clinicalReason.textContent = data.clinical_reason;

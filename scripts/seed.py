@@ -8,6 +8,10 @@ from app.models import Role, User, Hospital
 
 app = create_app()
 
+# NOTE: These are DEV-ONLY defaults. In production set env vars:
+#   ADMIN_PASSWORD, DOCTOR_PASSWORD, HOSPITAL1_PASSWORD, HOSPITAL2_PASSWORD, HOSPITAL3_PASSWORD
+IS_DEV = os.environ.get('FLASK_ENV', 'development') == 'development'
+
 
 def generate_strong_password(length=16):
     """Generate a cryptographically secure random password."""
@@ -56,7 +60,7 @@ def seed_data():
         admin_role = Role.query.filter_by(name='Admin').first()
         admin = User.query.filter_by(username='admin').first()
         if admin is None:
-            admin_pw = 'admin123'
+            admin_pw = os.environ.get('ADMIN_PASSWORD') or (generate_strong_password() if not IS_DEV else 'admin123')
             admin = User(username='admin', email='admin@example.com', role=admin_role)
             admin.set_password(admin_pw)
             db.session.add(admin)
@@ -69,7 +73,7 @@ def seed_data():
         doctor_role = Role.query.filter_by(name='Doctor').first()
         doctor = User.query.filter_by(username='doctor').first()
         if doctor is None:
-            doctor_pw = 'doctor123'
+            doctor_pw = os.environ.get('DOCTOR_PASSWORD') or (generate_strong_password() if not IS_DEV else 'doctor123')
             doctor = User(username='doctor', email='doctor@example.com', role=doctor_role)
             doctor.set_password(doctor_pw)
             db.session.add(doctor)
@@ -81,9 +85,12 @@ def seed_data():
         # Create Hospital Users (one per hospital)
         hospital_role = Role.query.filter_by(name='Hospital Node').first()
         hospital_users = [
-            {'username': 'hospital',  'email': 'hospital@example.com',  'hospital_name': 'Hospital Node 1', 'password': 'hospital123'},
-            {'username': 'hospital2', 'email': 'hospital2@example.com', 'hospital_name': 'Hospital Node 2', 'password': 'hospital2123'},
-            {'username': 'hospital3', 'email': 'hospital3@example.com', 'hospital_name': 'Hospital Node 3', 'password': 'hospital3123'},
+            {'username': 'hospital',  'email': 'hospital@example.com',  'hospital_name': 'Hospital Node 1',
+             'password': os.environ.get('HOSPITAL1_PASSWORD') or (generate_strong_password() if not IS_DEV else 'hospital123')},
+            {'username': 'hospital2', 'email': 'hospital2@example.com', 'hospital_name': 'Hospital Node 2',
+             'password': os.environ.get('HOSPITAL2_PASSWORD') or (generate_strong_password() if not IS_DEV else 'hospital2123')},
+            {'username': 'hospital3', 'email': 'hospital3@example.com', 'hospital_name': 'Hospital Node 3',
+             'password': os.environ.get('HOSPITAL3_PASSWORD') or (generate_strong_password() if not IS_DEV else 'hospital3123')},
         ]
         for h_user_data in hospital_users:
             h_obj = Hospital.query.filter_by(name=h_user_data['hospital_name']).first()

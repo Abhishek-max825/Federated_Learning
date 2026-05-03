@@ -445,7 +445,11 @@
                             <h6 style="color: #0ea5e9; margin-bottom: 0.5rem;">Option 1: Local WFDB Dataset</h6>
                             <p style="color: #94a3b8; font-size: 0.85rem; margin: 0;">
                                 Train on pre-split WFDB data at:<br>
+                                {% if current_user.hospital_id %}
                                 <code>ecg_dataset/hospital_{{ current_user.hospital_id }}/</code>
+                                {% else %}
+                                <span style="color:#ef4444;">Hospital ID not assigned — contact admin.</span>
+                                {% endif %}
                             </p>
                         </div>
                     </div>

@@ -268,11 +268,11 @@ class RRAnalyzer:
             reason: explanation string
         """
         if cv < self.CV_NORMAL_THRESHOLD:
-            return 'normal', f'CV = {cv:.1f}% < 8% (Normal threshold)'
+            return 'normal', f'CV = {cv:.1f}% < {self.CV_NORMAL_THRESHOLD}% (Normal threshold)'
         elif cv > self.CV_ARRHYTHMIA_THRESHOLD:
-            return 'arrhythmia', f'CV = {cv:.1f}% > 12% (Arrhythmia threshold)'
+            return 'arrhythmia', f'CV = {cv:.1f}% > {self.CV_ARRHYTHMIA_THRESHOLD}% (Arrhythmia threshold)'
         else:
-            return 'borderline', f'CV = {cv:.1f}% (8-12% borderline, use ML)'
+            return 'borderline', f'CV = {cv:.1f}% ({self.CV_NORMAL_THRESHOLD}-{self.CV_ARRHYTHMIA_THRESHOLD}% borderline, use ML)'
 
 
 class HybridDecisionSystem:
@@ -280,9 +280,9 @@ class HybridDecisionSystem:
     Hybrid decision system combining ML and clinical rules.
     
     Clinical rules override ML when CV is conclusive:
-    - CV < 8%: Always Normal (even if ML says Arrhythmia)
-    - CV > 12%: Always Arrhythmia (even if ML says Normal)
-    - 8% <= CV <= 12%: Use ML prediction
+    - CV < 5%: Always Normal (even if ML says Arrhythmia)
+    - CV > 20%: Always Arrhythmia (even if ML says Normal)
+    - 5% <= CV <= 20%: Use ML prediction
     """
     
     def __init__(self):
@@ -355,7 +355,7 @@ class HybridDecisionSystem:
         
         # Apply hybrid rules
         if clinical_decision == 'normal':
-            # CV < 8%: Override to Normal
+            # CV < 5%: Override to Normal
             return {
                 'final_prediction': 0,
                 'final_confidence': 0.88,  # Capped to avoid showing 100%
@@ -369,7 +369,7 @@ class HybridDecisionSystem:
             }
         
         elif clinical_decision == 'arrhythmia':
-            # CV > 12%: Override to Arrhythmia
+            # CV > 20%: Override to Arrhythmia
             return {
                 'final_prediction': 1,
                 'final_confidence': 0.88,

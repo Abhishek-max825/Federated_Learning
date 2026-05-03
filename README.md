@@ -1,53 +1,116 @@
 # Federated Learning System — Heart Disease + ECG Arrhythmia
 
 A privacy-preserving **Federated Learning** web application with two prediction modules:
+
 1. **Heart Disease Risk** — tabular data (BRFSS 2022), FedAvg aggregation
 2. **ECG Arrhythmia Detection** — 12-lead ECG signals (PTB-XL), ResNet1D-18 + FedBN + Hybrid Clinical/ML decision system
 
-Raw patient data never leaves each hospital node — only model weights are shared.
+> Raw patient data never leaves each hospital node — only model weights are shared with the central server.
 
 ---
 
-## Tech Stack
+## Table of Contents
+
+1. [Architecture Overview](#1-architecture-overview)
+2. [Tech Stack](#2-tech-stack)
+3. [Project Structure](#3-project-structure)
+4. [Prerequisites](#4-prerequisites)
+5. [Step-by-Step Setup (Fresh Clone)](#5-step-by-step-setup-fresh-clone)
+6. [Dataset Setup — ECG (PTB-XL)](#6-dataset-setup--ecg-ptb-xl)
+7. [Dataset Setup — Heart Disease (BRFSS)](#7-dataset-setup--heart-disease-brfss)
+8. [Database Setup](#8-database-setup)
+9. [Running the Server](#9-running-the-server)
+10. [Default Login Credentials](#10-default-login-credentials)
+11. [How to Use — ECG Workflow](#11-how-to-use--ecg-federated-learning-workflow)
+12. [How to Use — Heart Disease Workflow](#12-how-to-use--heart-disease-federated-learning-workflow)
+13. [What Works Without Training](#13-what-works-without-training)
+14. [Common Errors & Fixes](#14-common-errors--fixes)
+
+---
+
+## 1. Architecture Overview
+
+```
+[Hospital Node 1] ──┐
+[Hospital Node 2] ──┼──▶ [Central Flask Server] ──▶ [Doctor Dashboard]
+[Hospital Node 3] ──┘         (Aggregation)
+```
+
+- Each **Hospital Node** trains a local model on its own data
+- Only **model weights** (not patient data) are sent to the server
+- The **Admin** triggers aggregation to produce a global model
+- The **Doctor** uses the global model for predictions
+
+---
+
+## 2. Tech Stack
 
 | Layer       | Technology                                              |
 |-------------|--------------------------------------------------------|
 | Backend     | Flask 3, Flask-Login, Flask-Migrate, SQLAlchemy, SQLite |
 | ML/DL       | PyTorch 2 (ResNet1D-18), scikit-learn, scipy           |
-| ECG Data    | PTB-XL via WFDB library                                |
-| Frontend    | Custom dark UI, HTML5 Canvas (ECG visualization)       |
+| ECG Data    | PTB-XL dataset via WFDB Python library                 |
+| Heart Data  | BRFSS 2022 (CDC survey data)                           |
+| Frontend    | Custom dark UI, HTML5 Canvas (ECG waveform viz)        |
+| Auth        | Flask-Login + Flask-WTF CSRF + Flask-Limiter           |
 
 ---
 
-## Project Structure
+## 3. Project Structure
 
 ```
 Federated_Learning/
 ├── app/
-│   ├── api/routes.py           # All REST API endpoints
-│   ├── auth/                   # Login / register
+│   ├── api/
+│   │   └── routes.py               # All REST API endpoints (/api/...)
+│   ├── auth/
+│   │   ├── routes.py               # Login / logout
+│   │   └── forms.py                # Login / registration forms
 │   ├── fl/
-│   │   ├── ecg_model.py        # ResNet1D-18 model
-│   │   ├── ecg_client.py       # Hospital FL client
-│   │   ├── ecg_aggregator.py   # FedBN aggregator
-│   │   ├── ecg_clinical.py     # Pan-Tompkins + Hybrid decision
-│   │   ├── ecg_unified.py      # Preprocessing pipeline
-│   │   ├── aggregator.py       # Heart disease FedAvg aggregator
-│   │   ├── client.py           # Heart disease FL client
-│   │   ├── model.py            # Heart disease DNN
-│   │   └── data.py             # Heart disease data loader
-│   ├── main/                   # Page routes
-│   ├── templates/              # Jinja2 HTML templates
-│   ├── models.py               # DB models
-│   └── fl_globals.py           # Global aggregator instances
-├── ecg_dataset/                # PTB-XL metadata CSVs + split_hospitals.py
-│   ├── hospital_1/metadata.csv
-│   ├── hospital_2/metadata.csv
-│   ├── hospital_3/metadata.csv
-│   └── split_hospitals.py      # Run once to create hospital splits
-├── heart_disease_dataset/      # BRFSS 2022 hospital splits
-├── scripts/seed.py             # Creates DB users/roles/hospitals
-├── migrations/                 # Alembic DB migrations
+│   │   ├── ecg_model.py            # ResNet1D-18 with attention
+│   │   ├── ecg_client.py           # Hospital ECG FL training client
+│   │   ├── ecg_aggregator.py       # FedBN aggregator for ECG
+│   │   ├── ecg_clinical.py         # Pan-Tompkins + RR hybrid decision
+│   │   ├── ecg_unified.py          # Unified ECG preprocessing pipeline
+│   │   ├── aggregator.py           # Heart disease FedAvg aggregator
+│   │   ├── client.py               # Heart disease FL training client
+│   │   ├── model.py                # Heart disease DNN model
+│   │   └── data.py                 # Heart disease data loader
+│   ├── main/
+│   │   └── routes.py               # Page routes (dashboards)
+│   ├── templates/
+│   │   ├── admin/dashboard.html    # Admin control panel
+│   │   ├── doctor/dashboard.html   # Doctor prediction interface
+│   │   ├── doctor/ecg_dashboard.html
+│   │   ├── doctor/mode_selector.html
+│   │   └── hospital/               # Hospital training interface
+│   ├── models.py                   # SQLAlchemy DB models
+│   ├── fl_globals.py               # Global aggregator singletons
+│   └── uploads/                    # Temp upload folder (auto-created)
+├── ecg_dataset/
+│   ├── split_hospitals.py          # Run once to generate hospital splits
+│   ├── split_summary.txt           # Summary of last split run
+│   ├── hospital_1/
+│   │   └── metadata.csv            # Generated by split_hospitals.py
+│   ├── hospital_2/
+│   │   └── metadata.csv            # Generated by split_hospitals.py
+│   ├── hospital_3/
+│   │   └── metadata.csv            # Generated by split_hospitals.py
+│   ├── records100/                 # ← NOT in git. Download PTB-XL here.
+│   │   └── 00000/
+│   │       ├── 00001_lr.dat
+│   │       └── 00001_lr.hea
+│   ├── ptbxl_database.csv          # ← NOT in git. From PTB-XL download.
+│   └── scp_statements.csv          # ← NOT in git. From PTB-XL download.
+├── heart_disease_dataset/
+│   ├── BRFSS_2022.csv              # ← NOT in git. Download from CDC.
+│   ├── hospital_client1.csv        # Generated by split_dataset.py
+│   ├── hospital_client2.csv        # Generated by split_dataset.py
+│   └── hospital_client3.csv        # Generated by split_dataset.py
+├── scripts/
+│   └── seed.py                     # Seeds DB with roles, hospitals, users
+├── migrations/                     # Alembic migration files
+├── app/fl/saved_models/            # Auto-created when models are saved
 ├── config.py
 ├── run.py
 └── requirements.txt
@@ -55,93 +118,582 @@ Federated_Learning/
 
 ---
 
-## Setup on a New Machine
+## 4. Prerequisites
 
-### 1. Prerequisites
-- Python 3.10+
-- Git
+| Requirement | Minimum Version | Check Command |
+|-------------|----------------|---------------|
+| Python | 3.10+ | `python --version` |
+| pip | 23+ | `pip --version` |
+| Git | any | `git --version` |
+| Disk space | ~3 GB free | For PTB-XL dataset |
+| RAM | 4 GB+ | PyTorch needs memory |
 
-### 2. Clone & install
+> **Windows users:** Use **PowerShell** or **Command Prompt**. If using VS Code terminal, that works too.
+
+---
+
+## 5. Step-by-Step Setup (Fresh Clone)
+
+### Step 1 — Clone the repository
+
 ```bash
-git clone <repo-url>
+git clone <your-repo-url>
 cd Federated_Learning
+```
+
+### Step 2 — Create a virtual environment (recommended)
+
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux / Mac
+python3 -m venv venv
+source venv/bin/activate
+```
+
+> You should see `(venv)` in your terminal prompt after activation.
+
+### Step 3 — Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. Download PTB-XL dataset (required for ECG module)
+This installs: Flask, PyTorch, scikit-learn, scipy, wfdb, pandas, numpy, and all other required packages.
+
+> **Takes 2–5 minutes** depending on internet speed. PyTorch is ~800 MB.
+
+### Step 4 — Set PYTHONPATH
+
+This is required so Python can find the `app` module from the project root.
+
 ```bash
-# Download from PhysioNet — about 1.8 GB
-# https://physionet.org/content/ptb-xl/1.0.3/
-# Extract so the structure looks like:
-#   ecg_dataset/records100/00000/00001_lr.dat
-#   ecg_dataset/records100/00000/00001_lr.hea
-#   ecg_dataset/ptbxl_database.csv
-#   ecg_dataset/scp_statements.csv
+# Windows (PowerShell)
+$env:PYTHONPATH = (Get-Location).Path
+
+# Windows (Command Prompt)
+set PYTHONPATH=%CD%
+
+# Linux / Mac
+export PYTHONPATH=$PWD
 ```
 
-### 4. Generate hospital dataset splits
+> **Tip:** Add this to your `.env` file or shell profile so you don't have to repeat it every session.
+
+### Step 5 — Set up datasets
+
+See [Section 6](#6-dataset-setup--ecg-ptb-xl) and [Section 7](#7-dataset-setup--heart-disease-brfss) below.
+
+### Step 6 — Set up the database
+
+```bash
+flask db upgrade
+python scripts/seed.py
+```
+
+See [Section 8](#8-database-setup) for details.
+
+### Step 7 — Run the server
+
+```bash
+python run.py
+```
+
+Open **http://127.0.0.1:5000** in your browser.
+
+---
+
+## 6. Dataset Setup — ECG (PTB-XL)
+
+### 6.1 Download PTB-XL
+
+1. Go to: **https://physionet.org/content/ptb-xl/1.0.3/**
+2. Click **"Download the ZIP file"** (requires free PhysioNet account)
+3. Extract the ZIP — you will get a folder called `ptb-xl-a-large-publicly-available-electrocardiography-dataset-1.0.3/`
+
+### 6.2 Copy files into the project
+
+Copy the following files/folders into `ecg_dataset/`:
+
+```
+ecg_dataset/
+├── records100/          ← copy the entire records100/ folder here
+│   └── 00000/
+│       ├── 00001_lr.dat
+│       ├── 00001_lr.hea
+│       └── ...
+├── ptbxl_database.csv   ← copy this file here
+└── scp_statements.csv   ← copy this file here
+```
+
+> The `records100/` folder contains ~21,800 ECG recordings at 100 Hz. Each recording is 2 files: `.dat` (binary signal) + `.hea` (header/metadata).
+
+### 6.3 Generate hospital splits
+
 ```bash
 cd ecg_dataset
 python split_hospitals.py
-# Creates: hospital_1/metadata.csv, hospital_2/metadata.csv, hospital_3/metadata.csv
 cd ..
 ```
 
-### 5. Set up the database
-```bash
-flask db upgrade          # Apply migrations
-python scripts/seed.py    # Create roles, hospitals, users
+**What this does:**
+- Reads `ptbxl_database.csv` to get SCP diagnostic codes
+- Classifies each ECG as Normal (0) or Arrhythmia (1)
+- Splits records across 3 hospitals in a balanced way
+- Creates `hospital_1/metadata.csv`, `hospital_2/metadata.csv`, `hospital_3/metadata.csv`
+
+**Expected output:**
+```
+[1/5] Loading PTB-XL metadata...
+[2/5] Filtering classifiable records...
+  Records with files on disk: ~7300
+[3/5] Assigning records to hospitals...
+  Hospital 1 after balance: Normal=916, Arrhythmia=916
+  Hospital 2 after balance: Normal=924, Arrhythmia=924
+  Hospital 3 after balance: Normal=925, Arrhythmia=925
+[4/5] Writing hospital metadata...
+[5/5] Creating summary report...
+Split Complete!
 ```
 
-### 6. Run the server
+> If you see `Records with files on disk: 0`, the `records100/` folder is in the wrong location. Check Step 6.2.
+
+### 6.4 Verify the structure
+
+After setup, your `ecg_dataset/` should look like:
+
+```
+ecg_dataset/
+├── records100/           ← signal files (~1.8 GB)
+├── ptbxl_database.csv    ← metadata (~6 MB)
+├── scp_statements.csv    ← SCP code descriptions
+├── split_hospitals.py
+├── split_summary.txt     ← generated summary
+├── hospital_1/
+│   └── metadata.csv      ← ~1832 rows
+├── hospital_2/
+│   └── metadata.csv      ← ~1848 rows
+└── hospital_3/
+    └── metadata.csv      ← ~1850 rows
+```
+
+---
+
+## 7. Dataset Setup — Heart Disease (BRFSS)
+
+### 7.1 Download BRFSS 2022
+
+1. Go to: **https://www.cdc.gov/brfss/annual_data/annual_2022.html**
+2. Download the **SAS Transport Format (.XPT)** file
+3. Convert to CSV using Python:
+
+```python
+import pandas as pd
+df = pd.read_sas('LLCP2022.XPT', format='xport', encoding='utf-8')
+df.to_csv('BRFSS_2022.csv', index=False)
+```
+
+4. Place the resulting `BRFSS_2022.csv` at: `heart_disease_dataset/BRFSS_2022.csv`
+
+### 7.2 Generate hospital splits
+
 ```bash
-set PYTHONPATH=%CD%        # Windows
-# export PYTHONPATH=$PWD   # Linux/Mac
+python heart_disease_dataset/split_dataset.py
+```
+
+This creates:
+- `heart_disease_dataset/hospital_client1.csv`
+- `heart_disease_dataset/hospital_client2.csv`
+- `heart_disease_dataset/hospital_client3.csv`
+
+### 7.3 Alternative — use pre-split files
+
+If you already have the 3 hospital CSV files (e.g., from a teammate), just place them directly in `heart_disease_dataset/` with the names above. The heart disease module uses them directly when a hospital uploads via the dashboard.
+
+> **The heart disease module works without any pre-downloaded data.** Hospital nodes upload their CSV directly through the web UI. The BRFSS download is only needed if you want to generate the splits yourself.
+
+---
+
+## 8. Database Setup
+
+### 8.1 Apply migrations
+
+```bash
+flask db upgrade
+```
+
+This creates `app.db` (SQLite) with all tables: `user`, `role`, `hospital`, `audit_log`, `model_version`, `ecg_round`, etc.
+
+**If you get `Error: Could not locate a Flask application`:**
+
+```bash
+# Windows
+set FLASK_APP=run.py
+flask db upgrade
+
+# Linux/Mac
+export FLASK_APP=run.py
+flask db upgrade
+```
+
+### 8.2 Seed default users
+
+```bash
+python scripts/seed.py
+```
+
+**Expected output:**
+```
+Roles seeded.
+Hospitals seeded.
+Admin user seeded. Password: admin123
+Doctor user seeded. Password: doctor123
+Hospital user 'hospital' seeded -> Hospital Node 1. Password: hospital123
+Hospital user 'hospital2' seeded -> Hospital Node 2. Password: hospital2123
+Hospital user 'hospital3' seeded -> Hospital Node 3. Password: hospital3123
+```
+
+> If you see `already exists` messages, the users were already created. That's fine.
+
+### 8.3 Reset the database (if needed)
+
+If your database gets corrupted or you want a clean slate:
+
+```bash
+# Delete the database
+del app.db          # Windows
+rm app.db           # Linux/Mac
+
+# Re-apply migrations and re-seed
+flask db upgrade
+python scripts/seed.py
+```
+
+---
+
+## 9. Running the Server
+
+```bash
 python run.py
-# OR:
-flask run --debug --no-reload
 ```
-Open: http://127.0.0.1:5000
+
+Open: **http://127.0.0.1:5000**
+
+### Development mode with auto-reload
+
+```bash
+# Windows
+set FLASK_DEBUG=1
+python run.py
+
+# Linux/Mac
+FLASK_DEBUG=1 python run.py
+```
+
+### Using flask run
+
+```bash
+set FLASK_APP=run.py      # Windows
+flask run --no-reload
+```
+
+> Use `--no-reload` to prevent the FL aggregator from being initialized twice (double-loading causes issues).
 
 ---
 
-## Default Login Credentials
+## 10. Default Login Credentials
 
-| Role     | Username    | Password       | Access                          |
-|----------|-------------|----------------|---------------------------------|
-| Admin    | `admin`     | `admin123`     | User mgmt, FL rounds, aggregation |
-| Doctor   | `doctor`    | `doctor123`    | Heart disease & ECG prediction  |
-| Hospital | `hospital1` | `hospital123`  | ECG local training (Node 1)     |
-| Hospital | `hospital2` | `hospital2123` | ECG local training (Node 2)     |
-| Hospital | `hospital3` | `hospital3123` | ECG local training (Node 3)     |
+> **⚠️ Security Warning:** These are **development-only** credentials. Change them before any production or public deployment. The Admin account has full system privileges.
 
----
+| Role     | Username   | Password       | Access Level                         |
+|----------|------------|----------------|--------------------------------------|
+| Admin    | `admin`    | `admin123`     | Full access: users, FL, aggregation  |
+| Doctor   | `doctor`   | `doctor123`    | Heart disease + ECG predictions      |
+| Hospital | `hospital` | `hospital123`  | ECG + Heart training (Node 1)        |
+| Hospital | `hospital2`| `hospital2123` | ECG + Heart training (Node 2)        |
+| Hospital | `hospital3`| `hospital3123` | ECG + Heart training (Node 3)        |
 
-## ECG Federated Learning Workflow
+To use custom passwords, set environment variables before seeding:
 
-1. Log in as each **Hospital** node → go to ECG Training → Train on Local Dataset
-2. After all 3 hospitals train → log in as **Admin** → Aggregate ECG Models (FedBN)
-3. Log in as **Doctor** → ECG tab → upload `.dat + .hea` files → Analyze ECG
-4. Result shows: Rhythm (Normal/Arrhythmia), Confidence, RR Variability, Heart Rate, R-Peaks, Lead II waveform with attention heatmap
-
-## Heart Disease FL Workflow
-
-1. Admin starts FL round
-2. Hospital nodes upload BRFSS CSV splits and train local DNN models
-3. Admin aggregates (FedAvg) → global model updates
-4. Doctor uses global model for cardiovascular risk prediction
+```bash
+set ADMIN_PASSWORD=MyStr0ngP@ss
+set DOCTOR_PASSWORD=D0ct0rS3cure!
+set HOSPITAL1_PASSWORD=H0sp1tal@Node1
+python scripts/seed.py
+```
 
 ---
 
-## What Works Out of the Box (After Setup)
+## 11. How to Use — ECG Federated Learning Workflow
 
-| Feature | Status |
-|---------|--------|
-| Login / RBAC (Admin, Doctor, Hospital) | ✅ Works immediately after seed |
-| Heart Disease prediction (pre-trained) | ✅ If hospital CSVs present |
-| ECG prediction (clinical rules only) | ✅ Works without training — uses RR-CV thresholds |
-| ECG prediction (ML model) | ⚠️ Requires training all 3 hospitals first |
-| Lead II rhythm visualization | ✅ Shown after every ECG analysis |
-| Federated aggregation | ✅ Admin dashboard |
+### Full workflow (first time)
 
-> **Note:** The ECG clinical override (CV > 20% → Arrhythmia, CV < 5% → Normal) works immediately even without any ML training. For borderline cases the ML model needs to be trained first.
+```
+Admin → Start ECG Round
+  ↓
+Hospital 1 login → ECG Training tab → "Train on Local Dataset" → wait ~2-5 min
+Hospital 2 login → ECG Training tab → "Train on Local Dataset" → wait ~2-5 min
+Hospital 3 login → ECG Training tab → "Train on Local Dataset" → wait ~2-5 min
+  ↓
+Admin → "Aggregate ECG Models (FedBN)"
+  ↓
+Doctor → ECG Analysis tab → Upload .dat + .hea files → "Analyze ECG"
+```
+
+### What each role sees
+
+**Hospital dashboard:**
+- Option 1: Train on pre-split local dataset (uses `ecg_dataset/hospital_X/`)
+- Option 2: Upload ECG files manually (WFDB `.dat`+`.hea` pairs)
+
+**Admin dashboard (ECG tab):**
+- Start Round, Aggregate, Reset buttons
+- Training history charts (accuracy/loss per round)
+- Per-hospital client status
+
+**Doctor dashboard (ECG tab):**
+- Upload `.dat` + `.hea` files together (select both at once)
+- Result: Rhythm label, confidence %, RR variability, heart rate, R-peak count
+- Lead II waveform visualization with attention heatmap overlay
+
+### ECG prediction without training
+
+Even without any FL training, the clinical module works:
+- **CV < 5%** → Normal (very regular rhythm)
+- **CV > 20%** → Arrhythmia (very irregular rhythm)
+- **5% ≤ CV ≤ 20%** → Uses ML model (needs training)
+
+---
+
+## 12. How to Use — Heart Disease Federated Learning Workflow
+
+```
+Admin → Start FL Round (Heart tab)
+  ↓
+Hospital 1 login → Heart Training tab → Upload hospital_client1.csv → Train
+Hospital 2 login → Heart Training tab → Upload hospital_client2.csv → Train
+Hospital 3 login → Heart Training tab → Upload hospital_client3.csv → Train
+  ↓
+Admin → "Aggregate Models (FedAvg)"
+  ↓
+Doctor → Heart Disease tab → Enter patient data → Predict
+```
+
+**Input features for prediction:**
+- Age, Sex, BMI
+- Smoking status, Alcohol use
+- Physical activity, Diabetes
+- Previous heart disease / stroke history
+
+---
+
+## 13. What Works Without Training
+
+| Feature | Needs Training? | Notes |
+|---------|----------------|-------|
+| Login / RBAC | ✅ No | Works immediately after `seed.py` |
+| ECG clinical prediction (CV-based) | ✅ No | Pan-Tompkins RR analysis always works |
+| ECG Lead II visualization | ✅ No | Shown after any ECG upload |
+| ECG ML prediction | ⚠️ Yes | Train all 3 hospitals + aggregate first |
+| Heart Disease prediction | ⚠️ Yes | Upload CSV + train + aggregate first |
+| Admin audit logs | ✅ No | Logs all actions immediately |
+| User management | ✅ No | Admin can add/edit/delete users |
+
+---
+
+## 14. Common Errors & Fixes
+
+### `ModuleNotFoundError: No module named 'app'`
+
+**Cause:** PYTHONPATH not set.
+
+```bash
+# Windows PowerShell
+$env:PYTHONPATH = (Get-Location).Path
+
+# Windows CMD
+set PYTHONPATH=%CD%
+
+# Linux/Mac
+export PYTHONPATH=$PWD
+```
+
+---
+
+### `Error: Could not locate a Flask application`
+
+**Cause:** FLASK_APP not set or wrong directory.
+
+```bash
+set FLASK_APP=run.py      # Windows
+export FLASK_APP=run.py   # Linux/Mac
+flask db upgrade
+```
+
+---
+
+### `sqlalchemy.exc.OperationalError: no such table: user`
+
+**Cause:** Migrations not applied yet.
+
+```bash
+flask db upgrade
+python scripts/seed.py
+```
+
+---
+
+### `FileNotFoundError: Metadata not found: ecg_dataset/hospital_1/metadata.csv`
+
+**Cause:** `split_hospitals.py` was not run yet.
+
+```bash
+cd ecg_dataset
+python split_hospitals.py
+cd ..
+```
+
+---
+
+### `Records with files on disk: 0` during split
+
+**Cause:** `records100/` folder is missing or in the wrong location.
+
+**Fix:** Ensure the structure is exactly:
+```
+ecg_dataset/records100/00000/00001_lr.dat
+ecg_dataset/records100/00000/00001_lr.hea
+```
+
+Check by running:
+```bash
+# Windows
+dir ecg_dataset\records100\00000
+
+# Linux/Mac
+ls ecg_dataset/records100/00000
+```
+
+---
+
+### `pip install` fails for `torch`
+
+**Cause:** Network timeout or pip version too old.
+
+```bash
+pip install --upgrade pip
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+```
+
+> Use the CPU-only build of PyTorch if you don't have a GPU — it's smaller and works fine for this project.
+
+---
+
+### `wfdb.io.record.Record' object is not subscriptable`
+
+**Cause:** Old version of wfdb library.
+
+```bash
+pip install --upgrade wfdb
+```
+
+---
+
+### ECG prediction shows `UNANALYZABLE`
+
+**Cause:** Not enough R-peaks detected (< 4) in the signal.
+
+**Possible reasons:**
+- Signal file is too short or corrupt
+- Wrong file format (must be WFDB `.dat` + `.hea`, not raw CSV for WFDB endpoint)
+- Signal amplitude too low for Pan-Tompkins detector
+
+**Fix:** Upload both `.dat` AND `.hea` files together. Make sure the signal is a standard 12-lead ECG.
+
+---
+
+### ECG training fails: `No ECG samples found`
+
+**Cause:** Hospital metadata CSV exists but the `.dat`/`.hea` files are missing.
+
+**Fix:**
+1. Confirm `records100/` is inside `ecg_dataset/` (not inside `hospital_1/`)
+2. Re-run `python ecg_dataset/split_hospitals.py`
+
+---
+
+### `flask db upgrade` shows `alembic.util.exc.CommandError: Can't locate revision`
+
+**Cause:** Migrations folder is out of sync with the database.
+
+```bash
+del app.db
+flask db upgrade
+python scripts/seed.py
+```
+
+---
+
+### Login redirects back to login page (not logging in)
+
+**Cause 1:** Wrong password — check [Section 10](#10-default-login-credentials).
+
+**Cause 2:** Database not seeded — run `python scripts/seed.py`.
+
+**Cause 3:** Session cookie issue — clear browser cookies for `localhost` and try again.
+
+---
+
+### Server starts but shows 500 Internal Server Error
+
+**Cause:** Usually a missing environment variable or import error.
+
+**Fix:** Run with debug mode to see the full traceback:
+
+```bash
+set FLASK_DEBUG=1
+python run.py
+```
+
+Then read the error message in the terminal or browser.
+
+---
+
+### `PermissionError` when saving model weights
+
+**Cause:** `app/fl/saved_models/` directory doesn't exist or no write permission.
+
+```bash
+mkdir app\fl\saved_models      # Windows
+mkdir -p app/fl/saved_models   # Linux/Mac
+```
+
+---
+
+## Quick Reference Commands
+
+```bash
+# Full setup from scratch (Windows)
+git clone <repo-url>
+cd Federated_Learning
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+set PYTHONPATH=%CD%
+set FLASK_APP=run.py
+flask db upgrade
+python scripts/seed.py
+python run.py
+
+# Reset database
+del app.db && flask db upgrade && python scripts/seed.py
+
+# Regenerate ECG splits
+cd ecg_dataset && python split_hospitals.py && cd ..
+
+# Check if everything is installed
+python -c "import flask, torch, wfdb, scipy, sklearn; print('All imports OK')"
+```

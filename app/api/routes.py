@@ -456,14 +456,18 @@ def ecg_start_round():
     if ecg_aggregator.round == 0:
         ecg_aggregator.initialize_global_model()
     
-    # Create round record in database
-    round_record = ECGRound(
-        round_number=ecg_aggregator.round + 1,
-        status='training',
-        aggregation_type='fedbn'
-    )
-    db.session.add(round_record)
-    db.session.commit()
+    # Prevent duplicate training rounds
+    existing = ECGRound.query.filter_by(status='training').order_by(ECGRound.id.desc()).first()
+    if existing:
+        round_record = existing
+    else:
+        round_record = ECGRound(
+            round_number=ecg_aggregator.round + 1,
+            status='training',
+            aggregation_type='fedbn'
+        )
+        db.session.add(round_record)
+        db.session.commit()
     
     return jsonify({
         'message': f'ECG Round {ecg_aggregator.round + 1} started. Waiting for hospital clients.',
@@ -552,7 +556,11 @@ def ecg_train_local():
                         label = 0  # Default: Normal
                         if ptbxl_df is not None:
                             # Extract ecg_id from filename (e.g., "00001_lr" -> 1)
-                            ecg_id = int(record_name.split('_')[0])
+                            id_part = record_name.split('_')[0]
+                            if not id_part.isdigit():
+                                current_app.logger.warning(f"ECG TRAIN: skipping malformed record name: {record_name}")
+                                continue
+                            ecg_id = int(id_part)
                             # Find matching record in PTB-XL database
                             matching = ptbxl_df[ptbxl_df['ecg_id'] == ecg_id]
                             if not matching.empty:
@@ -974,9 +982,16 @@ def ecg_predict():
         current_app.logger.error(f"ECG prediction error: {e}", exc_info=True)
         return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
     finally:
-        # Cleanup temp file
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        # Cleanup all uploaded temp files
+        all_files = list(saved_files) if 'saved_files' in dir() else []
+        if 'filepath' in dir() and filepath not in all_files:
+            all_files.append(filepath)
+        for _f in all_files:
+            try:
+                if os.path.exists(_f):
+                    os.remove(_f)
+            except OSError:
+                pass
 
 
 @bp.route('/ecg/history', methods=['GET'])

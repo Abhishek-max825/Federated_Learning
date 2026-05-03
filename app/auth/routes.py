@@ -18,8 +18,8 @@ def login():
             flash('Invalid username or password')
             return redirect(url_for('auth.login'))
         login_user(user, remember=form.remember_me.data)
-        # Make session permanent so it persists across server restarts
-        session.permanent = True
+        # Only make session permanent when user chose "remember me"
+        session.permanent = bool(form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or urlparse(next_page).netloc != '':
             if user.role.name == 'Admin':

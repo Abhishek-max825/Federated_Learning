@@ -227,7 +227,8 @@ class ECGFLClient:
         
         # Get trained weights
         trained_weights = self.model.get_weights()
-        n_samples = len(self.file_paths)
+        # Use actual training examples (train split, not total file count)
+        n_samples = len(train_dataset)
         
         # Differential Privacy: Clip + Noise on weight deltas
         if pre_train_weights is not None:

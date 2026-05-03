@@ -70,3 +70,9 @@ ecg_dataset/hospital_3/records500/
 app/fl/saved_models/
 app/uploads/
 heart_disease_dataset/hospital_client*.csv
+
+# Test artifacts (TestSprite generated files)
+testsprite_tests/
+
+# PRD is local documentation, not needed in repo
+PRD.md

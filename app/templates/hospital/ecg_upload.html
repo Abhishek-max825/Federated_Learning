@@ -525,11 +525,15 @@
         updateFileList();
     });
 
+    function escapeHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
     function handleFiles(files) {
-        const validFiles = Array.from(files).filter(file => file.name.endsWith('.csv'));
+        const validFiles = Array.from(files).filter(file => file.name.toLowerCase().endsWith('.csv'));
         
         if (validFiles.length !== files.length) {
-            showToast('Only CSV files are allowed', 'warning');
+            showStatus('warning', 'Only CSV files are allowed. Non-CSV files were skipped.');
         }
 
         selectedFiles = [...selectedFiles, ...validFiles];
@@ -551,7 +555,7 @@
             <div class="file-item">
                 <span class="file-icon">📄</span>
                 <div class="file-info">
-                    <div class="file-name">${file.name}</div>
+                    <div class="file-name">${escapeHtml(file.name)}</div>
                     <div class="file-size">${formatFileSize(file.size)}</div>
                 </div>
                 <button class="remove-file" onclick="removeFile(${index})">✕</button>
@@ -587,10 +591,11 @@
         });
         formData.append('csrf_token', '{{ csrf_token() }}');
 
+        let progressInterval;
         try {
             // Simulate progress
             let progress = 0;
-            const progressInterval = setInterval(() => {
+            progressInterval = setInterval(() => {
                 progress += 5;
                 if (progress > 90) clearInterval(progressInterval);
                 progressFill.style.width = progress + '%';
@@ -620,6 +625,7 @@
         } catch (error) {
             showStatus('error', 'Network error: ' + error.message);
         } finally {
+            clearInterval(progressInterval);
             trainBtn.classList.remove('loading');
             trainBtn.disabled = selectedFiles.length === 0;
         }

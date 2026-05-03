@@ -74,7 +74,7 @@ class ECGUnifiedPipeline:
             analog=False
         )
     
-    def load_wfdb(self, filepath: str) -> np.ndarray:
+    def load_wfdb(self, filepath: str) -> Tuple[np.ndarray, int]:
         """
         Load ECG signal from WFDB format.
         
@@ -82,17 +82,19 @@ class ECGUnifiedPipeline:
             filepath: Path to WFDB file (without extension, e.g., '00001_lr')
             
         Returns:
-            ECG signal array (timesteps × leads)
+            Tuple of (signal_data, fs) where signal_data is (timesteps x leads) and fs is the actual sampling frequency.
         """
         try:
             # wfdb.rdsamp reads both .dat and .hea
             record = wfdb.rdsamp(filepath)
             signal_data = record[0]  # (timesteps, leads)
+            fields = record[1]
+            fs = int(fields.get('fs', 100))  # actual WFDB sampling frequency
             
             # Ensure float32
             signal_data = signal_data.astype(np.float32)
             
-            return signal_data
+            return signal_data, fs
             
         except Exception as e:
             raise ValueError(f"Failed to load WFDB file {filepath}: {str(e)}")
@@ -184,7 +186,7 @@ class ECGUnifiedPipeline:
         else:
             return signal_data[:, 0].copy()  # Fallback to first lead
     
-    def preprocess(self, signal_data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def preprocess(self, signal_data: np.ndarray, original_fs: int = 100) -> Tuple[np.ndarray, np.ndarray]:
         """
         Full preprocessing pipeline.
         
@@ -196,14 +198,15 @@ class ECGUnifiedPipeline:
         
         Args:
             signal_data: Raw ECG signal (timesteps × leads)
-            
-            Returns:
+            original_fs: Actual sampling frequency from WFDB file (default 100 for PTB-XL lr)
+        
+        Returns:
             Tuple of (processed_12lead, lead_ii_signal)
             - processed_12lead: (1000, 12) normalized 12-lead signal
             - lead_ii_signal: (1000,) Lead II for clinical analysis
         """
         # 1. Resample to target length
-        resampled = self.resample_to_target(signal_data, original_fs=100)
+        resampled = self.resample_to_target(signal_data, original_fs=original_fs)
         
         # 2. High-pass filter
         filtered = self.apply_highpass_filter(resampled)
@@ -228,11 +231,11 @@ class ECGUnifiedPipeline:
         Returns:
             Tuple of (processed_12lead, lead_ii_signal)
         """
-        # Load raw signal
-        raw_signal = self.load_wfdb(filepath)
+        # Load raw signal with its actual sampling frequency
+        raw_signal, fs = self.load_wfdb(filepath)
         
-        # Preprocess
-        processed_12lead, lead_ii = self.preprocess(raw_signal)
+        # Preprocess using the true fs from the WFDB file
+        processed_12lead, lead_ii = self.preprocess(raw_signal, original_fs=fs)
         
         return processed_12lead, lead_ii
     
@@ -275,11 +278,21 @@ class ECGUnifiedPipeline:
         # Load metadata
         df = pd.read_csv(metadata_path)
         
+        # Validate required columns
+        required_cols = {'filename_lr', 'label'}
+        missing_cols = required_cols - set(df.columns)
+        if missing_cols:
+            raise ValueError(f"metadata.csv is missing required columns: {missing_cols}")
+        
         file_paths = []
         labels = []
+        missing_count = 0
         
         # Shared records root: ecg_dataset/ (parent of hospital folder)
         shared_root = hospital_path.parent
+        
+        import logging
+        logger = logging.getLogger(__name__)
         
         for _, row in df.iterrows():
             # filename_lr is like 'records100/00000/00001_lr'
@@ -299,7 +312,12 @@ class ECGUnifiedPipeline:
                 labels.append(int(row['label']))
                 continue
             
-            # File genuinely missing — skip silently (already filtered during split)
+            # File genuinely missing — log warning
+            missing_count += 1
+            logger.warning(f"Missing WFDB file: {relative_path} (tried hospital_path and shared_root)")
+        
+        if missing_count > 0:
+            logger.warning(f"load_hospital_dataset: {missing_count}/{len(df)} records missing from disk in {hospital_dir}")
         
         return file_paths, np.array(labels, dtype=np.int64)
 

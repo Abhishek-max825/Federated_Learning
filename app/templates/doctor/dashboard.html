@@ -464,6 +464,32 @@
                             The federated analysis engine predicts that this patient profile indicates a {% if prediction == 'Yes' %}<strong>high</strong>{% else %}<strong>low</strong>{% endif %} probability of cardiovascular disease relative to the population model.
                         </p>
 
+                        {% if probability is not none %}
+                        <div style="margin: 1.25rem 0; padding: 1rem; background: rgba(255,255,255,0.04); border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Cardiovascular Risk Score</span>
+                                <span id="risk-score-value" style="font-size: 1.6rem; font-weight: 700;">{{ probability }}%</span>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.08); border-radius: 999px; height: 8px; overflow: hidden;">
+                                <div id="risk-score-bar" data-value="{{ probability }}" data-high="{{ 'yes' if prediction == 'Yes' else 'no' }}" style="height: 100%; width: 0%; border-radius: 999px; transition: width 0.6s ease;"></div>
+                            </div>
+                        </div>
+                        <script>
+                            (function() {
+                                var bar = document.getElementById('risk-score-bar');
+                                var val = document.getElementById('risk-score-value');
+                                if (!bar || !val) return;
+                                var isHigh = bar.dataset.high === 'yes';
+                                var pct = parseFloat(bar.dataset.value) || 0;
+                                bar.style.width = pct + '%';
+                                bar.style.background = isHigh
+                                    ? 'linear-gradient(90deg,#f97316,#ef4444)'
+                                    : 'linear-gradient(90deg,#10b981,#059669)';
+                                val.style.color = isHigh ? '#ef4444' : '#10b981';
+                            })();
+                        </script>
+                        {% endif %}
+
                         <div class="info-list">
                             <div class="info-list-item">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -615,9 +641,11 @@
                 formData.append('file', ecgFileInput.files[i]);
             }
 
+            const csrfToken = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='));
             const res = await fetch('/api/ecg/predict', {
                 method: 'POST',
                 credentials: 'same-origin',
+                headers: csrfToken ? { 'X-CSRFToken': csrfToken.split('=')[1] } : {},
                 body: formData
             });
             const data = await res.json();
@@ -648,7 +676,7 @@
                         </div>
                         <div style="background: #1e293b; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1rem;">
                             <div style="color: #64748b; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.5rem;">Confidence</div>
-                            <div style="color: #f1f5f9; font-size: 1.5rem; font-weight: 600;">${(data.confidence * 100).toFixed(1)}%</div>
+                            <div style="color: #f1f5f9; font-size: 1.5rem; font-weight: 600;">${confidence !== 'N/A' ? confidence + '%' : 'N/A'}</div>
                         </div>
                     </div>
                     
@@ -770,8 +798,11 @@
         }
 
         // --- 3. Lead II waveform ---
-        const sigMin = Math.min(...signal);
-        const sigMax = Math.max(...signal);
+        let sigMin = signal[0], sigMax = signal[0];
+        for (let i = 1; i < signal.length; i++) {
+            if (signal[i] < sigMin) sigMin = signal[i];
+            if (signal[i] > sigMax) sigMax = signal[i];
+        }
         const sigRange = sigMax - sigMin || 1;
         const pad = H * 0.12;
 
@@ -780,8 +811,9 @@
         ctx.shadowColor = '#06b6d4';
         ctx.shadowBlur = 4;
         ctx.beginPath();
+        const denom = Math.max(1, signal.length - 1);
         for (let i = 0; i < signal.length; i++) {
-            const x = (i / (signal.length - 1)) * W;
+            const x = (i / denom) * W;
             const y = pad + ((sigMax - signal[i]) / sigRange) * (H - 2 * pad);
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);

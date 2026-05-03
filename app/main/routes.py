@@ -35,6 +35,7 @@ def doctor_dashboard():
         return redirect(url_for('auth.login'))
     form = PredictionForm()
     prediction = None
+    probability = None
     if form.validate_on_submit():
         # Prepare data for prediction
         # Scale BMI: User enters 25.5, BRFSS uses 2550
@@ -57,16 +58,20 @@ def doctor_dashboard():
         
         # Predict
         try:
-            # Check if model is initialized (might be empty if no rounds yet)
-            # SGDClassifier defaults: if not fitted, predict raises error.
-            # We can check check_is_fitted or just try.
             pred = aggregator.global_model.predict(X)[0]
-            # Map 1 -> Yes, 0 -> No
             prediction = 'Yes' if pred == 1 else 'No'
+            # Get probability if the model supports it
+            if hasattr(aggregator.global_model, 'predict_proba'):
+                proba = aggregator.global_model.predict_proba(X)[0]
+                probability = round(float(proba[1]) * 100, 1)  # % chance of heart disease
+            elif hasattr(aggregator.global_model, 'decision_function'):
+                import numpy as np
+                score = aggregator.global_model.decision_function(X)[0]
+                probability = round(float(1 / (1 + np.exp(-score))) * 100, 1)
         except Exception as e:
             flash(f'Error during prediction: Model might not be trained yet. {str(e)}')
-            
-    return render_template('doctor/dashboard.html', title='Doctor Dashboard', form=form, prediction=prediction)
+
+    return render_template('doctor/dashboard.html', title='Doctor Dashboard', form=form, prediction=prediction, probability=probability)
 
 @bp.route('/hospital/dashboard')
 @login_required

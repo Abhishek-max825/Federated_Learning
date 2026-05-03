@@ -224,8 +224,9 @@ class FedBNAggregator:
             )
             db.session.add(log)
             db.session.commit()
-        except:
-            pass  # Avoid breaking FL if DB fails
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"ECG aggregator DB log failed: {e}")
         
         # Save Global Model
         try:
@@ -266,6 +267,10 @@ class FedBNAggregator:
             n_samples: Number of samples client trained on
             metrics: Optional dict with 'accuracy', 'loss'
         """
+        # Validate n_samples
+        if not isinstance(n_samples, int) or n_samples <= 0:
+            raise ValueError(f"n_samples must be a positive integer, got: {n_samples!r}")
+        
         # Validate weight structure
         self._validate_weights(weights)
         

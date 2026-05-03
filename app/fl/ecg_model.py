@@ -16,6 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from typing import Tuple
+from torch.utils.data import DataLoader
 
 
 class BasicBlock1D(nn.Module):
@@ -349,9 +350,9 @@ class ECGModel:
             
             train_loss = epoch_loss / epoch_total if epoch_total > 0 else 0
             train_acc = epoch_correct / epoch_total if epoch_total > 0 else 0
-            scheduler.step(train_loss)
             
             # --- Validation phase ---
+            val_loss = None
             if val_dataloader is not None:
                 val_loss, val_acc, val_metrics = self._evaluate(val_dataloader, criterion)
                 final_metrics['val_loss'] = val_loss
@@ -360,6 +361,7 @@ class ECGModel:
                 final_metrics['val_recall'] = val_metrics.get('recall', 0.0)
                 final_metrics['val_f1'] = val_metrics.get('f1', 0.0)
                 final_metrics['confusion_matrix'] = val_metrics.get('confusion_matrix', [])
+                scheduler.step(val_loss)  # Monitor val_loss when available
                 
                 print(f"  Epoch {epoch+1}/{epochs} | "
                       f"Train Loss: {train_loss:.4f} Acc: {train_acc:.4f} | "
@@ -378,6 +380,7 @@ class ECGModel:
                         print(f"  Early stopping at epoch {epoch+1} (val_loss no improvement for {early_stopping_patience} epochs)")
                         break
             else:
+                scheduler.step(train_loss)  # Fall back to train_loss
                 print(f"  Epoch {epoch+1}/{epochs} | "
                       f"Train Loss: {train_loss:.4f} Acc: {train_acc:.4f}")
             
@@ -533,8 +536,13 @@ class ECGModel:
     def load(self, filepath: str) -> bool:
         """Load model from file."""
         import os
-        if os.path.exists(filepath):
+        if not os.path.exists(filepath):
+            return False
+        try:
             checkpoint = torch.load(filepath, map_location=self.device, weights_only=True)
             self.model.load_state_dict(checkpoint['model_state_dict'])
             return True
-        return False
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to load model from {filepath}: {e}")
+            return False
