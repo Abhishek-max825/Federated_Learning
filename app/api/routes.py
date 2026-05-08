@@ -819,9 +819,12 @@ def ecg_predict():
         # Get ML prediction (binary: 0=Normal, 1=Arrhythmia)
         global_model = ecg_aggregator.get_global_model()
         
-        # Warn if model has never been trained
+        # Block predictions if model has never been trained.
         if ecg_aggregator.round == 0:
-            current_app.logger.warning("[PREDICT] WARNING: Global model has NOT been trained yet (round=0). Predictions are unreliable. Train at least one hospital first.")
+            current_app.logger.warning("[PREDICT] Blocked: ECG model has NOT been trained yet (round=0).")
+            return jsonify({
+                'error': 'Prediction unavailable: ECG model is not trained yet. Train at least one hospital client first.'
+            }), 400
         
         predictions, probabilities, attention_maps = global_model.predict_with_attention(X)
         

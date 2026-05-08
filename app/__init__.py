@@ -6,6 +6,8 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
 from config import Config
+import logging
+import sys
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -24,6 +26,17 @@ def unauthorized():
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Ensure INFO logs (including epoch progress) are visible in terminal.
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s [%(name)s] %(message)s',
+        force=True,
+    )
+    # Keep stdout line-buffered so progress logs appear immediately.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(line_buffering=True)
+    app.logger.setLevel(logging.INFO)
 
     db.init_app(app)
     migrate.init_app(app, db)

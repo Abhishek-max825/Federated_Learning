@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import os
+import logging
 
 class FederatedDNN(nn.Module):
     def __init__(self, input_size=23):
@@ -29,13 +30,19 @@ class FLModel:
     def train(self, X, y, epochs=5, batch_size=256, lr=0.003):
         """Train the model on local data using PyTorch standard loop."""
         import torch.optim as optim
+        logger = logging.getLogger(__name__)
 
         # Compute class weight to handle imbalance
         # pos_weight = num_negatives / num_positives
         n_pos = max((y == 1).sum(), 1)
         n_neg = max((y == 0).sum(), 1)
         pos_weight = torch.tensor([n_neg / n_pos], dtype=torch.float32).to(self.device)
-        print(f"  Class distribution: {n_neg} negative, {n_pos} positive, pos_weight={pos_weight.item():.2f}")
+        logger.info(
+            "Heart FL training started | Class distribution: %s negative, %s positive, pos_weight=%.2f",
+            n_neg,
+            n_pos,
+            pos_weight.item(),
+        )
 
         criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
         optimizer = optim.Adam(self.model.parameters(), lr=lr)
@@ -71,7 +78,20 @@ class FLModel:
             epoch_avg_loss = epoch_loss / epoch_total
             epoch_accuracy = epoch_correct / epoch_total
             scheduler.step(epoch_avg_loss)
-            print(f"  Epoch {epoch+1}/{epochs} - Loss: {epoch_avg_loss:.4f}, Accuracy: {epoch_accuracy:.4f}, LR: {optimizer.param_groups[0]['lr']:.6f}")
+            logger.info(
+                "Heart FL Epoch %s/%s - Loss: %.4f, Accuracy: %.4f, LR: %.6f",
+                epoch + 1,
+                epochs,
+                epoch_avg_loss,
+                epoch_accuracy,
+                optimizer.param_groups[0]['lr'],
+            )
+            print(
+                f"[Heart FL] Epoch {epoch + 1}/{epochs} | "
+                f"loss={epoch_avg_loss:.4f} | acc={epoch_accuracy:.4f} | "
+                f"lr={optimizer.param_groups[0]['lr']:.6f}",
+                flush=True,
+            )
 
         # Return final epoch metrics (post-training performance)
         return {'loss': epoch_avg_loss, 'accuracy': epoch_accuracy}

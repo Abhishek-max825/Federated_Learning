@@ -37,6 +37,16 @@ def doctor_dashboard():
     prediction = None
     probability = None
     if form.validate_on_submit():
+        if aggregator.round == 0:
+            flash('Prediction unavailable: the heart disease model has not been trained yet. Ask a hospital node to complete at least one training round.')
+            return render_template(
+                'doctor/dashboard.html',
+                title='Doctor Dashboard',
+                form=form,
+                prediction=prediction,
+                probability=probability
+            )
+
         # Prepare data for prediction
         # Scale BMI: User enters 25.5, BRFSS uses 2550
         bmi_val = form.bmi.data * 100 

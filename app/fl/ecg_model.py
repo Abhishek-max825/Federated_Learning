@@ -15,6 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+import logging
 from typing import Tuple
 from torch.utils.data import DataLoader
 
@@ -310,6 +311,7 @@ class ECGModel:
             Dictionary with training and validation metrics
         """
         import torch.optim as optim
+        logger = logging.getLogger(__name__)
         
         # Use class-weighted loss with label smoothing (prevents 100% confidence collapse)
         criterion = nn.CrossEntropyLoss(
@@ -363,10 +365,23 @@ class ECGModel:
                 final_metrics['confusion_matrix'] = val_metrics.get('confusion_matrix', [])
                 scheduler.step(val_loss)  # Monitor val_loss when available
                 
-                print(f"  Epoch {epoch+1}/{epochs} | "
-                      f"Train Loss: {train_loss:.4f} Acc: {train_acc:.4f} | "
-                      f"Val Loss: {val_loss:.4f} Acc: {val_acc:.4f} | "
-                      f"F1: {val_metrics.get('f1', 0.0):.4f}")
+                logger.info(
+                    "ECG FL Epoch %s/%s | Train Loss: %.4f Acc: %.4f | Val Loss: %.4f Acc: %.4f | F1: %.4f",
+                    epoch + 1,
+                    epochs,
+                    train_loss,
+                    train_acc,
+                    val_loss,
+                    val_acc,
+                    val_metrics.get('f1', 0.0),
+                )
+                print(
+                    f"[ECG FL] Epoch {epoch + 1}/{epochs} | "
+                    f"train_loss={train_loss:.4f} | train_acc={train_acc:.4f} | "
+                    f"val_loss={val_loss:.4f} | val_acc={val_acc:.4f} | "
+                    f"f1={val_metrics.get('f1', 0.0):.4f}",
+                    flush=True,
+                )
                 
                 # Early stopping on validation loss
                 if val_loss < best_val_loss:
@@ -377,12 +392,26 @@ class ECGModel:
                 else:
                     patience_counter += 1
                     if patience_counter >= early_stopping_patience:
-                        print(f"  Early stopping at epoch {epoch+1} (val_loss no improvement for {early_stopping_patience} epochs)")
+                        logger.info(
+                            "ECG FL early stopping at epoch %s (val_loss no improvement for %s epochs)",
+                            epoch + 1,
+                            early_stopping_patience,
+                        )
                         break
             else:
                 scheduler.step(train_loss)  # Fall back to train_loss
-                print(f"  Epoch {epoch+1}/{epochs} | "
-                      f"Train Loss: {train_loss:.4f} Acc: {train_acc:.4f}")
+                logger.info(
+                    "ECG FL Epoch %s/%s | Train Loss: %.4f Acc: %.4f",
+                    epoch + 1,
+                    epochs,
+                    train_loss,
+                    train_acc,
+                )
+                print(
+                    f"[ECG FL] Epoch {epoch + 1}/{epochs} | "
+                    f"train_loss={train_loss:.4f} | train_acc={train_acc:.4f}",
+                    flush=True,
+                )
             
             final_metrics['loss'] = train_loss
             final_metrics['accuracy'] = train_acc
