@@ -4,7 +4,7 @@ ECG Dataset Split Summary
 Source: ./ptbxl_database.csv
 Total classifiable records: 7336
 Total balanced records assigned: 5530
-(Difference: 1806 records dropped during balancing to equalise Normal/Arrhythmia per hospital)
+(Difference: 1806 records dropped during balancing)
 
 Hospital 1:
   Records: 1832
