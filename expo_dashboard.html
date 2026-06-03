@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Federated Learning System — Project Expo Interactive Chart</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #121826;
+            --bg-card: rgba(22, 30, 49, 0.7);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --color-text-main: #f3f4f6;
+            --color-text-muted: #9ca3af;
+            
+            --accent-cyan: #06b6d4;
+            --accent-cyan-glow: rgba(6, 182, 212, 0.35);
+            --accent-purple: #a855f7;
+            --accent-purple-glow: rgba(168, 85, 247, 0.35);
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --accent-amber: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--color-text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.007) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.007) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        header {
+            padding: 2.5rem 2rem 1.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-card);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+            font-size: 1.2rem;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+
+        .expo-badge {
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #c084fc;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1100px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-purple), transparent);
+            opacity: 0.7;
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .card-title svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--accent-cyan);
+        }
+
+        /* Interactive Architecture Flow Diagram */
+        .diagram-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 480px;
+            position: relative;
+            padding: 1rem;
+        }
+
+        .svg-network {
+            width: 100%;
+            height: 520px;
+            overflow: visible;
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        .node-circle {
+            fill: var(--bg-secondary);
+            stroke-width: 2px;
+            transition: filter 0.3s, stroke-width 0.3s;
+        }
+
+        .node:hover .node-circle {
+            stroke-width: 2.5px;
+            filter: drop-shadow(0px 0px 10px var(--node-color));
+        }
+
+        .conn-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 7.5px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .privacy-zone {
+            fill: rgba(6, 182, 212, 0.03);
+            stroke: rgba(6, 182, 212, 0.25);
+            stroke-width: 1.5px;
+            stroke-dasharray: 6 3;
+            rx: 16;
+            ry: 16;
+        }
+
+        .privacy-label {
+            font-family: 'Space Grotesk', sans-serif;
+            fill: rgba(6, 182, 212, 0.6);
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-anchor: middle;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        .lock-icon {
+            fill: none;
+            stroke: rgba(6, 182, 212, 0.5);
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .node-text {
+            font-family: 'Space Grotesk', sans-serif;
+            fill: var(--color-text-main);
+            font-size: 11px;
+            font-weight: 600;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .node-subtext {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            fill: var(--color-text-muted);
+            font-size: 9px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .connection-line {
+            fill: none;
+            stroke-width: 2.5px;
+            stroke-dasharray: 8 4;
+            transition: all 0.5s;
+        }
+
+        /* Flow Animation states */
+        .weights-upload {
+            animation: dash-forward 30s linear infinite;
+            stroke: var(--accent-purple);
+        }
+
+        .weights-download {
+            animation: dash-backward 30s linear infinite;
+            stroke: var(--accent-cyan);
+        }
+
+        @keyframes dash-forward {
+            to {
+                stroke-dashoffset: -1000;
+            }
+        }
+
+        @keyframes dash-backward {
+            to {
+                stroke-dashoffset: 1000;
+            }
+        }
+
+        .pulse-core {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.4;
+                filter: drop-shadow(0 0 15px var(--accent-purple));
+            }
+            100% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+        }
+
+        /* High-tech Glowing Data Particles */
+        .data-particle {
+            fill: var(--accent-purple);
+            filter: drop-shadow(0 0 4px var(--accent-purple));
+            opacity: 0;
+            pointer-events: none;
+        }
+        .data-particle.active {
+            animation: move-particle 2.5s linear infinite;
+        }
+        .data-particle.download {
+            fill: var(--accent-cyan);
+            filter: drop-shadow(0 0 4px var(--accent-cyan));
+            animation: move-particle-reverse 2.5s linear infinite;
+        }
+
+        .p-h1 { offset-path: path('M 120 260 C 120 195, 300 200, 300 145'); }
+        .p-h2 { offset-path: path('M 300 260 L 300 145'); }
+        .p-h3 { offset-path: path('M 480 260 C 480 195, 300 200, 300 145'); }
+        .p-doc { offset-path: path('M 300 152 C 610 160, 610 420, 345 417'); }
+
+        @keyframes move-particle {
+            0% { offset-distance: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { offset-distance: 100%; opacity: 0; }
+        }
+        @keyframes move-particle-reverse {
+            0% { offset-distance: 100%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { offset-distance: 0%; opacity: 0; }
+        }
+
+        /* Flowing dash animation for Global Model path */
+        @keyframes flow-dash {
+            to { stroke-dashoffset: -40; }
+        }
+        #path-doc {
+            stroke-dasharray: 8 5;
+            stroke-dashoffset: 0;
+            animation: flow-dash 0.8s linear infinite;
+        }
+
+        /* Dynamic Training and Aggregating Pulses */
+        .training-pulse {
+            animation: train-glow 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes train-glow {
+            from {
+                stroke-width: 2px;
+                filter: drop-shadow(0 0 4px var(--accent-cyan));
+            }
+            to {
+                stroke-width: 6px;
+                filter: drop-shadow(0 0 16px var(--accent-cyan));
+            }
+        }
+
+        .aggregating-pulse {
+            animation: aggregate-glow 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes aggregate-glow {
+            from {
+                stroke-width: 2px;
+                filter: drop-shadow(0 0 4px var(--accent-purple));
+            }
+            to {
+                stroke-width: 8px;
+                filter: drop-shadow(0 0 20px var(--accent-purple));
+            }
+        }
+
+        .status-msg {
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+
+        /* SVG Network Focus/Dimming States */
+        .svg-network .node, .svg-network .connection-line {
+            transition: opacity 0.4s ease, stroke-width 0.3s, filter 0.3s;
+        }
+        .svg-network.focus-h1-h2-h3 .node:not(#node-h1):not(#node-h2):not(#node-h3) { opacity: 0.15; }
+        .svg-network.focus-h1-h2-h3 .connection-line { opacity: 0.15; }
+        
+        .svg-network.focus-central .node:not(#node-central) { opacity: 0.15; }
+        .svg-network.focus-central .connection-line:not(#path-h1):not(#path-h2):not(#path-h3) { opacity: 0.15; }
+
+        .svg-network.focus-doctor .node:not(#node-doctor) { opacity: 0.15; }
+        .svg-network.focus-doctor .connection-line:not(#path-doc) { opacity: 0.15; }
+
+        .svg-network.focus-h1 .node:not(#node-h1) { opacity: 0.15; }
+        .svg-network.focus-h1 .connection-line:not(#path-h1) { opacity: 0.15; }
+        
+        .svg-network.focus-h2 .node:not(#node-h2) { opacity: 0.15; }
+        .svg-network.focus-h2 .connection-line:not(#path-h2) { opacity: 0.15; }
+        
+        .svg-network.focus-h3 .node:not(#node-h3) { opacity: 0.15; }
+        .svg-network.focus-h3 .connection-line:not(#path-h3) { opacity: 0.15; }
+
+        /* Controller Buttons */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 1.5rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-card);
+            color: var(--color-text-main);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #08c8eb, #b86bfc);
+            box-shadow: 0 4px 25px rgba(168, 85, 247, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .info-panel {
+            background: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            width: 100%;
+            min-height: 90px;
+            transition: all 0.3s ease;
+        }
+
+        .info-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-cyan);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .info-desc {
+            font-size: 0.9rem;
+            color: var(--color-text-main);
+            line-height: 1.5;
+        }
+
+        /* Right Panel Tabs & Features */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: rgba(10, 14, 23, 0.5);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--color-text-muted);
+            padding: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-secondary);
+            color: var(--accent-cyan);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ECG Waveform Live Simulator */
+        .ecg-canvas-wrapper {
+            background: #060911;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            position: relative;
+            margin-bottom: 1.5rem;
+            box-shadow: inset 0 2px 15px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+
+        .ecg-grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(244, 63, 94, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(244, 63, 94, 0.03) 1px, transparent 1px),
+                linear-gradient(rgba(244, 63, 94, 0.08) 5px, transparent 5px),
+                linear-gradient(90deg, rgba(244, 63, 94, 0.08) 5px, transparent 5px);
+            background-size: 10px 10px, 10px 10px, 50px 50px, 50px 50px;
+            pointer-events: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 180px;
+        }
+
+        .ecg-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .meta-stat {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .meta-label {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-val {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+        }
+
+        .text-emerald { color: var(--accent-emerald); }
+        .text-rose { color: var(--accent-rose); }
+        .text-cyan { color: var(--accent-cyan); }
+        .text-purple { color: var(--accent-purple); }
+
+        .attention-control {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .control-label-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--accent-cyan);
+            transition: all 0.1s;
+        }
+
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Heart Disease Risk Form */
+        .heart-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            font-weight: 500;
+        }
+
+        .form-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--color-text-main);
+            font-family: inherit;
+            outline: none;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-purple);
+        }
+
+        .gauge-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed var(--border-card);
+        }
+
+        .gauge-ring {
+            width: 120px;
+            height: 60px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gauge-body {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 12px solid rgba(255, 255, 255, 0.05);
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+            box-sizing: border-box;
+            position: absolute;
+            transform: rotate(-45deg);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gauge-fill {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 12px solid var(--accent-emerald);
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+            box-sizing: border-box;
+            position: absolute;
+            transform: rotate(-45deg);
+            transform-origin: center;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.5s;
+        }
+
+        .gauge-text {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .gauge-percent {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .gauge-label {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        /* Innovation Highlights Card */
+        .innovation-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .innovation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .inno-item {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .inno-item:hover {
+            border-color: rgba(168, 85, 247, 0.3);
+            background: rgba(168, 85, 247, 0.02);
+            transform: translateY(-2px);
+        }
+
+        .inno-icon-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--color-text-main);
+            margin-bottom: 6px;
+        }
+
+        .inno-icon-title svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--accent-purple);
+        }
+
+        .inno-desc {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            line-height: 1.4;
+        }
+
+        /* Tooltip style */
+        .tooltip {
+            position: absolute;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-family: 'Space Grotesk', sans-serif;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        footer {
+            max-width: 1400px;
+            margin: 3rem auto 1.5rem auto;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            border-top: 1px solid var(--border-card);
+            padding-top: 1.5rem;
+        }
+
+        footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <div class="logo-icon">FL</div>
+            <div>
+                <h1>Federated Learning Ecosystem</h1>
+                <div class="tagline">Heart Disease & ECG Arrhythmia Detection</div>
+            </div>
+        </div>
+        <div class="expo-badge">PROJECT EXPO 2026</div>
+    </header>
+
+    <main>
+        <!-- Left Side: Interactive Federated Architecture Map -->
+        <div class="card">
+            <div class="card-title">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                Privacy-Preserving Federated Architecture
+            </div>
+            
+            <div class="diagram-container">
+                <svg class="svg-network" viewBox="0 0 640 490" onclick="resetFocus(event)">
+                    <defs>
+                        <!-- Glow Filters -->
+                        <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="6" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                        <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="6" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                        
+                        <!-- Marker Arrowheads -->
+                        <marker id="arrow-cyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent-cyan)"/>
+                        </marker>
+                        <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent-purple)"/>
+                        </marker>
+                    </defs>
+
+                    <!-- ═══════ PRIVACY ZONE BOX (around hospitals only) ═══════ -->
+                    <rect class="privacy-zone" x="50" y="240" width="510" height="120"/>
+                    <!-- Lock icon -->
+                    <g transform="translate(65, 248)">
+                        <rect class="lock-icon" x="2" y="5" width="8" height="7" rx="1"/>
+                        <path class="lock-icon" d="M 3.5 5 L 3.5 3.5 C 3.5 1.5 8.5 1.5 8.5 3.5 L 8.5 5"/>
+                    </g>
+                    <text class="privacy-label" x="300" y="352">Secure Client Zone · HIPAA Compliant · No Raw Data Leaves</text>
+
+                    <!-- ═══════ CONNECTION LINES ═══════ -->
+                    <!-- Hospital 1 → Central Server -->
+                    <path id="path-h1" d="M 120 260 C 120 195, 300 200, 300 145" class="connection-line weights-upload" marker-end="url(#arrow-purple)" stroke="var(--accent-purple)"/>
+                    <!-- Hospital 2 → Central Server -->
+                    <path id="path-h2" d="M 300 260 L 300 145" class="connection-line weights-upload" marker-end="url(#arrow-purple)" stroke="var(--accent-purple)"/>
+                    <!-- Hospital 3 → Central Server -->
+                    <path id="path-h3" d="M 480 260 C 480 195, 300 200, 300 145" class="connection-line weights-upload" marker-end="url(#arrow-purple)" stroke="var(--accent-purple)"/>
+                    <!-- Central Server → Doctor Portal (curves far RIGHT to avoid hospitals) -->
+                    <path id="path-doc" d="M 300 152 C 610 160, 610 420, 345 417" class="connection-line" stroke="var(--accent-emerald)" marker-end="url(#arrow-cyan)"/>
+
+                    <!-- ═══════ CONNECTOR LABELS ═══════ -->
+                    <!-- Label on H1 path -->
+                    <text class="conn-label" x="170" y="210" fill="rgba(168, 85, 247, 0.7)" transform="rotate(-25, 170, 210)">MODEL WEIGHTS ONLY</text>
+                    <!-- Label on H2 path -->
+                    <text class="conn-label" x="320" y="200" fill="rgba(168, 85, 247, 0.7)">MODEL WEIGHTS ONLY</text>
+                    <!-- Label on H3 path -->
+                    <text class="conn-label" x="430" y="210" fill="rgba(168, 85, 247, 0.7)" transform="rotate(25, 430, 210)">MODEL WEIGHTS ONLY</text>
+                    <!-- Label on Doctor path (right edge, rotated vertically) -->
+                    <text class="conn-label" x="605" y="310" fill="rgba(16, 185, 129, 0.7)" transform="rotate(90, 605, 310)">GLOBAL MODEL</text>
+
+                    <!-- ═══════ NODES ═══════ -->
+
+                    <!-- Central Aggregator (Hexagon Shape) -->
+                    <g class="node" id="node-central" onclick="showNodeInfo('central'); event.stopPropagation();" style="--node-color: var(--accent-purple);">
+                        <polygon points="300,75 335,97 335,130 300,152 265,130 265,97" class="node-circle" stroke="var(--accent-purple)"/>
+                        <!-- Server rack icon -->
+                        <path d="M 290 100 L 310 100 M 290 108 L 310 108 M 290 116 L 310 116" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round"/>
+                        <!-- LED dots -->
+                        <circle cx="293" cy="125" r="1.5" fill="var(--accent-purple)" opacity="0.8"/>
+                        <circle cx="298" cy="125" r="1.5" fill="var(--accent-purple)" opacity="0.5"/>
+                        <text x="300" y="62" class="node-text">Central Aggregator</text>
+                        <text x="300" y="48" class="node-subtext">Flask Server (FedAvg / FedBN)</text>
+                    </g>
+
+                    <!-- Hospital Node 1 (Rounded Rectangle) -->
+                    <g class="node" id="node-h1" onclick="showNodeInfo('h1'); event.stopPropagation();" style="--node-color: var(--accent-cyan);">
+                        <rect x="80" y="260" width="80" height="42" rx="10" ry="10" class="node-circle" stroke="var(--accent-cyan)"/>
+                        <!-- Cross icon -->
+                        <path d="M 113 281 L 127 281 M 120 274 L 120 288" stroke="var(--accent-cyan)" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="120" y="318" class="node-text">Hospital Node 1</text>
+                        <text x="120" y="330" class="node-subtext">1,832 ECG Records</text>
+                    </g>
+
+                    <!-- Hospital Node 2 (Rounded Rectangle) -->
+                    <g class="node" id="node-h2" onclick="showNodeInfo('h2'); event.stopPropagation();" style="--node-color: var(--accent-cyan);">
+                        <rect x="260" y="260" width="80" height="42" rx="10" ry="10" class="node-circle" stroke="var(--accent-cyan)"/>
+                        <path d="M 293 281 L 307 281 M 300 274 L 300 288" stroke="var(--accent-cyan)" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="300" y="318" class="node-text">Hospital Node 2</text>
+                        <text x="300" y="330" class="node-subtext">1,848 ECG Records</text>
+                    </g>
+
+                    <!-- Hospital Node 3 (Rounded Rectangle) -->
+                    <g class="node" id="node-h3" onclick="showNodeInfo('h3'); event.stopPropagation();" style="--node-color: var(--accent-cyan);">
+                        <rect x="440" y="260" width="80" height="42" rx="10" ry="10" class="node-circle" stroke="var(--accent-cyan)"/>
+                        <path d="M 473 281 L 487 281 M 480 274 L 480 288" stroke="var(--accent-cyan)" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="480" y="318" class="node-text">Hospital Node 3</text>
+                        <text x="480" y="330" class="node-subtext">1,850 ECG Records</text>
+                    </g>
+
+                    <!-- Doctor Portal (Pill Shape — below hospitals, receives global model) -->
+                    <g class="node" id="node-doctor" onclick="showNodeInfo('doctor'); event.stopPropagation();" style="--node-color: var(--accent-emerald);">
+                        <rect x="255" y="400" width="90" height="34" rx="17" ry="17" class="node-circle" stroke="var(--accent-emerald)"/>
+                        <!-- Pulse rate symbol -->
+                        <path d="M 275 417 L 281 417 L 284 409 L 287 425 L 290 413 L 292 417 L 298 417" fill="none" stroke="var(--accent-emerald)" stroke-width="1.5"/>
+                        <text x="300" y="452" class="node-text">Doctor Diagnostic Portal</text>
+                        <text x="300" y="464" class="node-subtext">ML-Assisted Diagnoses</text>
+                    </g>
+
+                    <!-- Hospital Status Overlays -->
+                    <text x="120" y="255" class="status-msg" id="status-h1" style="fill: var(--accent-cyan); font-size: 8px; font-weight: bold; text-anchor: middle; opacity: 0;">TRAINING...</text>
+                    <text x="300" y="255" class="status-msg" id="status-h2" style="fill: var(--accent-cyan); font-size: 8px; font-weight: bold; text-anchor: middle; opacity: 0;">TRAINING...</text>
+                    <text x="480" y="255" class="status-msg" id="status-h3" style="fill: var(--accent-cyan); font-size: 8px; font-weight: bold; text-anchor: middle; opacity: 0;">TRAINING...</text>
+
+                    <!-- Glowing Data Particles -->
+                    <circle r="5" class="data-particle p-h1" id="part-h1"/>
+                    <circle r="5" class="data-particle p-h2" id="part-h2"/>
+                    <circle r="5" class="data-particle p-h3" id="part-h3"/>
+                    <circle r="5" class="data-particle p-doc" id="part-doc"/>
+                </svg>
+
+                <div class="tooltip" id="map-tooltip">Node info</div>
+            </div>
+
+            <!-- Controller panel -->
+            <div class="controls">
+                <button class="btn btn-primary" id="btn-demo" onclick="triggerExhibitionDemo()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Launch Exhibition Demo
+                </button>
+                <button class="btn" onclick="toggleFlowDirection()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    Toggle Flow Direction
+                </button>
+            </div>
+
+            <!-- Node Information Display -->
+            <div class="info-panel" id="info-panel">
+                <div class="info-title" id="info-panel-title">Interactive Guide</div>
+                <div class="info-desc" id="info-panel-desc">Click any node in the architectural chart above to see how data/weights flow. Press "Simulate FL Round" to watch model aggregation. Note that <b>raw patient records never leave the hospital boundary</b>, ensuring absolute privacy compliance (HIPAA).</div>
+            </div>
+        </div>
+
+        <!-- Right Side: Model Showcase Modules (ECG + Tabular Forms) -->
+        <div class="right-column">
+            
+            <div class="card">
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="switchTab('ecg')">ECG Arrhythmia ML</button>
+                    <button class="tab-btn" onclick="switchTab('heart')">Heart Disease Risk</button>
+                </div>
+
+                <!-- Tab 1: ECG Module -->
+                <div class="tab-content active" id="tab-ecg">
+                    <div class="card-title" style="margin-bottom: 0.5rem;">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        ECG Arrhythmia Diagnostics
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1.25rem;">
+                        ResNet1D-18 model trained locally with FedBN (Federated Batch Normalization).
+                    </p>
+
+                    <!-- ECG Visualizer Screen -->
+                    <div class="ecg-canvas-wrapper">
+                        <div class="ecg-grid-overlay"></div>
+                        <canvas id="ecgCanvas"></canvas>
+                    </div>
+
+                    <!-- Interactive Slider & Metrics -->
+                    <div class="ecg-meta">
+                        <div class="meta-stat">
+                            <div class="meta-label">Heart Rate</div>
+                            <div class="meta-val text-cyan" id="ecg-hr">72 bpm</div>
+                        </div>
+                        <div class="meta-stat">
+                            <div class="meta-label">R-Peaks</div>
+                            <div class="meta-val text-purple" id="ecg-peaks">6 detected</div>
+                        </div>
+                        <div class="meta-stat">
+                            <div class="meta-label">ML Prediction</div>
+                            <div class="meta-val text-emerald" id="ecg-pred">NORMAL (96%)</div>
+                        </div>
+                    </div>
+
+                    <!-- Attention Heatmap Controller -->
+                    <div class="attention-control">
+                        <div class="control-label-flex">
+                            <span>Saliency/Attention Overlay (Deep Learning)</span>
+                            <span class="text-cyan" id="saliency-val">70% Visibility</span>
+                        </div>
+                        <input type="range" class="range-slider" min="0" max="100" value="70" id="saliency-slider" oninput="updateSaliency(this.value)">
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="changeECGPattern('normal')">Simulate Normal Rhythm</button>
+                        <button class="btn" style="flex: 1; justify-content: center; border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;" onclick="changeECGPattern('arrhythmia')">Simulate Arrhythmia</button>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Heart Disease Module -->
+                <div class="tab-content" id="tab-heart">
+                    <div class="card-title" style="margin-bottom: 0.5rem;">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                        Heart Disease Tabular Predictor
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1.25rem;">
+                        Deep Neural Network (DNN) trained across hospital nodes using FedAvg.
+                    </p>
+
+                    <!-- Interactive Form -->
+                    <div class="heart-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="age">Patient Age</label>
+                                <input type="number" class="form-input" id="age" value="58" oninput="recalcHeartRisk()">
+                            </div>
+                            <div class="form-group">
+                                <label for="bmi">BMI (Body Mass Index)</label>
+                                <input type="number" class="form-input" id="bmi" value="28.4" oninput="recalcHeartRisk()">
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="smoker">Smoking Status</label>
+                                <select class="form-input" id="smoker" onchange="recalcHeartRisk()">
+                                    <option value="0">Never Smoked</option>
+                                    <option value="1" selected>Yes, Daily Smoker</option>
+                                    <option value="0.5">Occasional Smoker</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="diabetes">Diabetic</label>
+                                <select class="form-input" id="diabetes" onchange="recalcHeartRisk()">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0.3">Borderline / Pre-diabetic</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="activity">Physical Activity (last 30 days)</label>
+                            <select class="form-input" id="activity" onchange="recalcHeartRisk()">
+                                <option value="0">Regular Exercise</option>
+                                <option value="0.8" selected>Sedentary Lifestyle</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Risk Gauge -->
+                    <div class="gauge-wrapper">
+                        <div class="gauge-ring">
+                            <div class="gauge-body"></div>
+                            <div class="gauge-fill" id="risk-gauge-fill"></div>
+                        </div>
+                        <div class="gauge-text">
+                            <div class="gauge-percent text-amber" id="risk-percent">42%</div>
+                            <div class="gauge-label" id="risk-status">MODERATE RISK</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Innovation Highlights Card -->
+            <div class="card">
+                <div class="card-title">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    Key Project Innovations
+                </div>
+                
+                <div class="innovation-grid">
+                    <div class="inno-item">
+                        <div class="inno-icon-title">
+                            <!-- Shield lock icon -->
+                            <svg fill="none" stroke="currentColor" stroke-dasharray="" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            Privacy Preserved
+                        </div>
+                        <div class="inno-desc">Only weight updates traverse nodes, eliminating central risk of HIPAA leaks.</div>
+                    </div>
+                    <div class="inno-item">
+                        <div class="inno-icon-title">
+                            <!-- Chart icon -->
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.003 9.003 0 1020.945 13H11V3.055z"></path></svg>
+                            FedBN Architecture
+                        </div>
+                        <div class="inno-desc">Resolves client hospital data heterogeneity by reserving Batch Normalization weights locally.</div>
+                    </div>
+                    <div class="inno-item">
+                        <div class="inno-icon-title">
+                            <!-- Sparkles icon -->
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                            Hybrid Decision Ring
+                        </div>
+                        <div class="inno-desc">Pan-Tompkins signal parser processes clear cases, triggering ResNet1D-18 only for complex signals.</div>
+                    </div>
+                    <div class="inno-item">
+                        <div class="inno-icon-title">
+                            <!-- Eye icon -->
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            Attention Heatmaps
+                        </div>
+                        <div class="inno-desc">Highlights critical 12-lead signal nodes directly on Lead II, explaining neural decisions.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>Built for Project Exhibition. FL System Codebase: <a href="#">Federated_Learning/</a> | Developer Dashboard Console</p>
+    </footer>
+
+    <!-- Script for Live Interaction and Canvas drawing -->
+    <script>
+        // Node metadata configurations
+        const nodeMetadata = {
+            h1: {
+                title: "Hospital Node 1 (Local Trainer)",
+                desc: "Contains a local database split of the PTB-XL ECG dataset (1,832 records) and BRFSS 2022 survey data. Trains a local ResNet1D-18 on cardiac signals and a local DNN on tabular data. Only shares resulting gradients/weights, safeguarding patient privacy."
+            },
+            h2: {
+                title: "Hospital Node 2 (Local Trainer)",
+                desc: "Independently processes a local database split of the PTB-XL ECG dataset (1,848 records). Performs local weight updates and communicates exclusively with the central coordinator using private encrypted API tokens."
+            },
+            h3: {
+                title: "Hospital Node 3 (Local Trainer)",
+                desc: "Processes a local database split of the PTB-XL dataset (1,850 records). By employing Federated Learning, this hospital leverages the collective training power of all hospitals without transferring a single patient file."
+            },
+            central: {
+                title: "Central Aggregator (Flask Server)",
+                desc: "Acts as the coordinator. Uses <b>FedAvg</b> (Federated Averaging) for the Heart Disease tabular model and <b>FedBN</b> (Federated Batch Normalization) for the ECG ResNet1D-18 model. FedBN prevents feature shifts across hospitals by keeping batch normalization local to each hospital."
+            },
+            doctor: {
+                title: "Doctor Diagnostic Portal",
+                desc: "Where clinicians upload clinical .dat/.hea recordings. Instantly computes R-peak frequency via the Pan-Tompkins algorithm, analyzes heart rate variability, and activates the aggregated DL model for attention-guided diagnostic assistance."
+            }
+        };
+
+        // Node Information Panel Controller
+        function showNodeInfo(nodeId) {
+            const meta = nodeMetadata[nodeId];
+            const titleEl = document.getElementById('info-panel-title');
+            const descEl = document.getElementById('info-panel-desc');
+            const panel = document.getElementById('info-panel');
+            const svgNetwork = document.querySelector('.svg-network');
+            
+            titleEl.textContent = meta.title;
+            descEl.innerHTML = meta.desc;
+            
+            // Add focus class to network
+            svgNetwork.className.baseVal = "svg-network focus-" + nodeId;
+            
+            // Add a temporary glow highlights effect
+            panel.style.boxShadow = `0 0 15px var(--node-color)`;
+            setTimeout(() => {
+                panel.style.boxShadow = 'none';
+            }, 1000);
+        }
+
+        function resetFocus(event) {
+            // Only reset if clicked on the SVG background itself, not on a node group
+            if (event.target.tagName === 'svg' || event.target.className.baseVal === 'svg-network') {
+                const svgNetwork = document.querySelector('.svg-network');
+                svgNetwork.className.baseVal = "svg-network";
+                const titleEl = document.getElementById('info-panel-title');
+                const descEl = document.getElementById('info-panel-desc');
+                titleEl.textContent = "Interactive Guide";
+                descEl.innerHTML = "Click any node in the architectural chart above to see how data/weights flow. Press 'Launch Exhibition Demo' to watch model aggregation.";
+            }
+        }
+
+        // FL Animation Controller
+        let isUploading = true;
+        function toggleFlowDirection() {
+            const lines = document.querySelectorAll('.connection-line');
+            isUploading = !isUploading;
+            lines.forEach(line => {
+                if (line.id !== 'path-doc') {
+                    if (isUploading) {
+                        line.className.baseVal = "connection-line weights-upload";
+                        line.style.stroke = "var(--accent-purple)";
+                        line.setAttribute('marker-end', 'url(#arrow-purple)');
+                        line.removeAttribute('marker-start');
+                        document.getElementById('arrow-purple').querySelector('path').setAttribute('fill', 'var(--accent-purple)');
+                    } else {
+                        line.className.baseVal = "connection-line weights-download";
+                        line.style.stroke = "var(--accent-cyan)";
+                        line.setAttribute('marker-start', 'url(#arrow-cyan)');
+                        line.removeAttribute('marker-end');
+                        document.getElementById('arrow-cyan').querySelector('path').setAttribute('fill', 'var(--accent-cyan)');
+                    }
+                }
+            });
+            
+            const titleEl = document.getElementById('info-panel-title');
+            const descEl = document.getElementById('info-panel-desc');
+            if (isUploading) {
+                titleEl.textContent = "Upload Cycle (Weight Extraction)";
+                descEl.textContent = "Local hospital nodes train models locally for 5 epochs. The local weights are encrypted and sent up (purple paths) to the central aggregator.";
+            } else {
+                titleEl.textContent = "Download Cycle (Global Broadcast)";
+                descEl.textContent = "The central aggregator merges weights using FedBN / FedAvg, generating a globally smart model. This global model is broadcast back (cyan paths) to improve local node baselines.";
+            }
+        }
+
+        // Stepper Exhibition Demo Controller
+        let demoInterval = null;
+        let demoStep = 0;
+        let isDemoRunning = false;
+
+        function runDemoStep() {
+            const centralCircle = document.getElementById('node-central').querySelector('.node-circle');
+            const h1Circle = document.getElementById('node-h1').querySelector('.node-circle');
+            const h2Circle = document.getElementById('node-h2').querySelector('.node-circle');
+            const h3Circle = document.getElementById('node-h3').querySelector('.node-circle');
+            const docCircle = document.getElementById('node-doctor').querySelector('.node-circle');
+            const svgNetwork = document.querySelector('.svg-network');
+            
+            const statusH1 = document.getElementById('status-h1');
+            const statusH2 = document.getElementById('status-h2');
+            const statusH3 = document.getElementById('status-h3');
+            
+            const titleEl = document.getElementById('info-panel-title');
+            const descEl = document.getElementById('info-panel-desc');
+            const panel = document.getElementById('info-panel');
+            
+            const particles = document.querySelectorAll('.data-particle');
+            
+            // Reset states
+            h1Circle.classList.remove('training-pulse');
+            h2Circle.classList.remove('training-pulse');
+            h3Circle.classList.remove('training-pulse');
+            centralCircle.classList.remove('aggregating-pulse');
+            docCircle.classList.remove('training-pulse');
+            svgNetwork.className.baseVal = "svg-network";
+            
+            statusH1.style.opacity = '0';
+            statusH2.style.opacity = '0';
+            statusH3.style.opacity = '0';
+            
+            particles.forEach(p => p.classList.remove('active', 'download'));
+            
+            if (demoStep === 0) {
+                isDemoRunning = true;
+                svgNetwork.className.baseVal = "svg-network focus-h1-h2-h3";
+                
+                h1Circle.classList.add('training-pulse');
+                h2Circle.classList.add('training-pulse');
+                h3Circle.classList.add('training-pulse');
+                
+                statusH1.textContent = "TRAINING (EPOCH 5/5)...";
+                statusH2.textContent = "TRAINING (EPOCH 5/5)...";
+                statusH3.textContent = "TRAINING (EPOCH 5/5)...";
+                statusH1.style.opacity = '1';
+                statusH2.style.opacity = '1';
+                statusH3.style.opacity = '1';
+                
+                titleEl.textContent = "Exhibition Phase 1: Local Model Training";
+                descEl.innerHTML = "Each Hospital Node executes local SGD gradient iterations on their local database split. <b>No client patient data leaves their local firewalls</b>, preserving HIPAA compliance.";
+                panel.style.boxShadow = `0 0 20px var(--accent-cyan)`;
+                
+                demoStep = 1;
+                demoInterval = setTimeout(runDemoStep, 4500);
+            } 
+            else if (demoStep === 1) {
+                svgNetwork.className.baseVal = "svg-network focus-central";
+                
+                const p1 = document.getElementById('part-h1');
+                const p2 = document.getElementById('part-h2');
+                const p3 = document.getElementById('part-h3');
+                
+                p1.classList.add('active');
+                p2.classList.add('active');
+                p3.classList.add('active');
+                
+                statusH1.textContent = "EXPORTING GRADIENTS...";
+                statusH2.textContent = "EXPORTING GRADIENTS...";
+                statusH3.textContent = "EXPORTING GRADIENTS...";
+                statusH1.style.opacity = '1';
+                statusH2.style.opacity = '1';
+                statusH3.style.opacity = '1';
+                
+                titleEl.textContent = "Exhibition Phase 2: Transmitting Parameters";
+                descEl.innerHTML = "Hospital client nodes packaging and encrypting local neural network weights (coefficients). Glowing purple particles illustrate model coefficients traveling up to the coordinator server.";
+                panel.style.boxShadow = `0 0 20px var(--accent-purple)`;
+                
+                demoStep = 2;
+                demoInterval = setTimeout(runDemoStep, 4500);
+            } 
+            else if (demoStep === 2) {
+                svgNetwork.className.baseVal = "svg-network focus-central";
+                centralCircle.classList.add('aggregating-pulse');
+                
+                titleEl.textContent = "Exhibition Phase 3: Centralized Model Aggregation";
+                descEl.innerHTML = "The Flask Server acts as the central coordinator, combining local client weights using <b>FedBN (Federated Batch Normalization)</b>. Batch Normalization layers are kept local to preserve node features, aggregating only core neural weights.";
+                panel.style.boxShadow = `0 0 20px var(--accent-purple)`;
+                
+                demoStep = 3;
+                demoInterval = setTimeout(runDemoStep, 4500);
+            } 
+            else if (demoStep === 3) {
+                svgNetwork.className.baseVal = "svg-network focus-h1-h2-h3";
+                
+                const p1 = document.getElementById('part-h1');
+                const p2 = document.getElementById('part-h2');
+                const p3 = document.getElementById('part-h3');
+                
+                p1.classList.add('active', 'download');
+                p2.classList.add('active', 'download');
+                p3.classList.add('active', 'download');
+                
+                statusH1.textContent = "SYNCING GLOBAL MODEL...";
+                statusH2.textContent = "SYNCING GLOBAL MODEL...";
+                statusH3.textContent = "SYNCING GLOBAL MODEL...";
+                statusH1.style.opacity = '1';
+                statusH2.style.opacity = '1';
+                statusH3.style.opacity = '1';
+                
+                titleEl.textContent = "Exhibition Phase 4: Model Synchronization";
+                descEl.innerHTML = "Broadcasting the updated model weights back to all nodes (cyan particles). Hospitals download the new base model, increasing baseline testing accuracy across all facilities by **+3.4%**.";
+                panel.style.boxShadow = `0 0 20px var(--accent-cyan)`;
+                
+                demoStep = 4;
+                demoInterval = setTimeout(runDemoStep, 4500);
+            } 
+            else if (demoStep === 4) {
+                svgNetwork.className.baseVal = "svg-network focus-doctor";
+                docCircle.classList.add('training-pulse');
+                
+                const pDoc = document.getElementById('part-doc');
+                pDoc.classList.add('active'); // Will travel to doctor
+                
+                titleEl.textContent = "Demo Finished: Model Deployed & Ready!";
+                descEl.innerHTML = "The aggregated global model is successfully deployed. Doctors can now upload raw signals in the portal. The Pan-Tompkins module parses beats, falling back to Attention-ResNet to highlight arrhythmia anomalies.";
+                panel.style.boxShadow = `0 0 20px var(--accent-emerald)`;
+                
+                isDemoRunning = false;
+                demoStep = 0;
+                document.getElementById('btn-demo').innerHTML = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Re-run Exhibition Demo`;
+            }
+        }
+
+        function triggerExhibitionDemo() {
+            if (isDemoRunning) {
+                clearTimeout(demoInterval);
+                isDemoRunning = false;
+                demoStep = 0;
+                document.getElementById('btn-demo').innerHTML = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Launch Exhibition Demo`;
+                
+                // Reset all nodes focus
+                const svgNetwork = document.querySelector('.svg-network');
+                svgNetwork.className.baseVal = "svg-network";
+                const centralCircle = document.getElementById('node-central').querySelector('circle');
+                const h1Circle = document.getElementById('node-h1').querySelector('circle');
+                const h2Circle = document.getElementById('node-h2').querySelector('circle');
+                const h3Circle = document.getElementById('node-h3').querySelector('circle');
+                const docCircle = document.getElementById('node-doctor').querySelector('circle');
+                h1Circle.classList.remove('training-pulse');
+                h2Circle.classList.remove('training-pulse');
+                h3Circle.classList.remove('training-pulse');
+                centralCircle.classList.remove('aggregating-pulse');
+                docCircle.classList.remove('training-pulse');
+                
+                document.getElementById('status-h1').style.opacity = '0';
+                document.getElementById('status-h2').style.opacity = '0';
+                document.getElementById('status-h3').style.opacity = '0';
+                
+                const particles = document.querySelectorAll('.data-particle');
+                particles.forEach(p => p.classList.remove('active', 'download'));
+                
+                const titleEl = document.getElementById('info-panel-title');
+                const descEl = document.getElementById('info-panel-desc');
+                titleEl.textContent = "Interactive Guide";
+                descEl.innerHTML = "Click any node in the architectural chart above to see how data/weights flow. Press 'Launch Exhibition Demo' to watch model aggregation.";
+                return;
+            }
+            document.getElementById('btn-demo').innerHTML = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg> Stop Exhibition Demo`;
+            demoStep = 0;
+            runDemoStep();
+        }
+
+        function simulateRound() {
+            // Wrapper for legacy trigger
+            triggerExhibitionDemo();
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tabId === 'ecg') {
+                event.target.classList.add('active');
+                document.getElementById('tab-ecg').classList.add('active');
+            } else {
+                event.target.classList.add('active');
+                document.getElementById('tab-heart').classList.add('active');
+                recalcHeartRisk();
+            }
+        }
+
+        // Live ECG Draw Engine
+        const canvas = document.getElementById('ecgCanvas');
+        const ctx = canvas.getContext('2d');
+        let animationId;
+        let ecgPattern = 'normal';
+        let saliencyAlpha = 0.7;
+
+        // Resize handler
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 180;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let timeOffset = 0;
+        
+        function drawECG() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const midY = height / 2;
+            
+            let isNormal = (ecgPattern === 'normal');
+            let cycleLength = isNormal ? 160 : 100; // Normal or faster/irregular
+            
+            let points = [];
+            
+            // Draw baseline and waves
+            for (let x = 0; x < width; x++) {
+                let virtualX = (x + timeOffset) % cycleLength;
+                let yVal = 0;
+                
+                // Mathematical modeling of standard P-Q-R-S-T complexes
+                if (virtualX < 20) {
+                    yVal = 10 * Math.sin((virtualX / 20) * Math.PI);
+                } else if (virtualX >= 20 && virtualX < 35) {
+                    yVal = 0;
+                } else if (virtualX >= 35 && virtualX < 38) {
+                    yVal = -6 * (virtualX - 35) / 3;
+                } else if (virtualX >= 38 && virtualX < 44) {
+                    let progress = (virtualX - 38) / 6;
+                    if (progress < 0.5) {
+                        yVal = -6 + 76 * (progress * 2);
+                    } else {
+                        yVal = 70 - 76 * ((progress - 0.5) * 2);
+                    }
+                } else if (virtualX >= 44 && virtualX < 48) {
+                    yVal = -6 + 18 * (1 - (virtualX - 44) / 4);
+                } else if (virtualX >= 48 && virtualX < 70) {
+                    yVal = 0;
+                } else if (virtualX >= 70 && virtualX < 100) {
+                    yVal = 16 * Math.sin(((virtualX - 70) / 30) * Math.PI);
+                } else {
+                    yVal = 0;
+                }
+
+                // Inject irregular anomalies if simulating arrhythmia
+                if (!isNormal) {
+                    if (Math.floor((x + timeOffset) / cycleLength) % 2 === 0) {
+                        if (virtualX > 60 && virtualX < 85) {
+                            yVal += 30 * Math.sin(((virtualX - 60) / 25) * Math.PI);
+                        }
+                    }
+                }
+                
+                let plotY = midY - yVal;
+                points.push({ x: x, y: plotY });
+            }
+            
+            // Draw Gradient Area under the curve
+            ctx.beginPath();
+            ctx.moveTo(0, height);
+            for (let i = 0; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.lineTo(width, height);
+            ctx.closePath();
+            
+            const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
+            areaGradient.addColorStop(0, 'rgba(244, 63, 94, 0.18)');
+            areaGradient.addColorStop(1, 'rgba(244, 63, 94, 0.0)');
+            ctx.fillStyle = areaGradient;
+            ctx.shadowBlur = 0;
+            ctx.fill();
+
+            // Draw ECG Stroke Line
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#f43f5e'; // ECG color
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = 'rgba(244, 63, 94, 0.6)';
+            ctx.stroke();
+
+            // Saliency Attention Highlights Overlay
+            if (saliencyAlpha > 0.01) {
+                ctx.shadowBlur = 0;
+                
+                for (let x = 0; x < width; x++) {
+                    let virtualX = (x + timeOffset) % cycleLength;
+                    let attentionScore = 0;
+                    
+                    if (virtualX >= 35 && virtualX <= 48) {
+                        attentionScore = 0.95; // Extreme attention on R-peaks
+                    } else if (virtualX >= 70 && virtualX <= 90) {
+                        attentionScore = 0.55; // Moderate attention on T-wave anomalies
+                    } else if (!isNormal && virtualX > 55 && virtualX < 90) {
+                        attentionScore = 0.85; // Extra attention on irregular arrhythmia PVC patterns
+                    }
+
+                    if (attentionScore > 0.1) {
+                        ctx.beginPath();
+                        ctx.arc(x, points[x].y, 6 * attentionScore, 0, 2 * Math.PI);
+                        ctx.fillStyle = `rgba(168, 85, 247, ${attentionScore * saliencyAlpha})`;
+                        ctx.fill();
+                    }
+                }
+            }
+
+            timeOffset += isNormal ? 2.5 : 4;
+            animationId = requestAnimationFrame(drawECG);
+        }
+
+        // Start drawing loop
+        drawECG();
+
+        function updateSaliency(val) {
+            saliencyAlpha = val / 100;
+            document.getElementById('saliency-val').textContent = `${val}% Visibility`;
+        }
+
+        function changeECGPattern(pattern) {
+            ecgPattern = pattern;
+            const hrEl = document.getElementById('ecg-hr');
+            const peakEl = document.getElementById('ecg-peaks');
+            const predEl = document.getElementById('ecg-pred');
+
+            if (pattern === 'normal') {
+                hrEl.textContent = '72 bpm';
+                peakEl.textContent = '6 detected';
+                predEl.textContent = 'NORMAL (96%)';
+                predEl.className = 'meta-val text-emerald';
+            } else {
+                hrEl.textContent = '114 bpm';
+                peakEl.textContent = '9 detected';
+                predEl.textContent = 'ARRHYTHMIA (92%)';
+                predEl.className = 'meta-val text-rose';
+            }
+        }
+
+        // Tabular Heart Risk Gauge Calculator
+        function recalcHeartRisk() {
+            const age = parseFloat(document.getElementById('age').value) || 0;
+            const bmi = parseFloat(document.getElementById('bmi').value) || 0;
+            const smoker = parseFloat(document.getElementById('smoker').value) || 0;
+            const diabetes = parseFloat(document.getElementById('diabetes').value) || 0;
+            const activity = parseFloat(document.getElementById('activity').value) || 0;
+
+            // Simple mock regression equation inspired by BRFSS analysis
+            let score = 5;
+            
+            // Age factor
+            if (age > 65) score += 35;
+            else if (age > 50) score += 20;
+            else if (age > 35) score += 10;
+
+            // BMI factor
+            if (bmi > 30) score += 20;
+            else if (bmi > 25) score += 10;
+            
+            // Habits factor
+            score += smoker * 25;
+            score += diabetes * 25;
+            score += activity * 12;
+
+            // Cap at 99%
+            score = Math.min(Math.round(score), 99);
+            score = Math.max(score, 5);
+
+            // Update gauge filling & color
+            const fill = document.getElementById('risk-gauge-fill');
+            const percentText = document.getElementById('risk-percent');
+            const statusText = document.getElementById('risk-status');
+
+            percentText.textContent = `${score}%`;
+
+            // Calculate rotation degree (-45 to 135 deg is the active half-circle range)
+            const deg = -45 + (score / 100) * 180;
+            fill.style.transform = `rotate(${deg}deg)`;
+
+            // Set color themes based on risk bands
+            if (score < 25) {
+                fill.style.borderColor = 'var(--accent-emerald)';
+                percentText.className = 'gauge-percent text-emerald';
+                statusText.textContent = 'LOW RISK';
+            } else if (score < 60) {
+                fill.style.borderColor = 'var(--accent-amber)';
+                percentText.className = 'gauge-percent text-amber';
+                statusText.textContent = 'MODERATE RISK';
+            } else {
+                fill.style.borderColor = 'var(--accent-rose)';
+                percentText.className = 'gauge-percent text-rose';
+                statusText.textContent = 'HIGH RISK';
+            }
+        }
+    </script>
+</body>
+</html>
