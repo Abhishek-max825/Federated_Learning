@@ -11,7 +11,7 @@ class FLAggregator:
         self.client_weights = []
         self.client_sizes = []
         self.client_metrics = []  # Store real metrics from each client
-        self.history = {'rounds': [], 'accuracy': [], 'loss': []}
+        self.history = {'rounds': [], 'accuracy': [], 'loss': [], 'num_clients': []}
 
     def reset(self):
         """Reset the federated learning state completely."""
@@ -20,7 +20,7 @@ class FLAggregator:
         self.client_weights = []
         self.client_sizes = []
         self.client_metrics = []
-        self.history = {'rounds': [], 'accuracy': [], 'loss': []}
+        self.history = {'rounds': [], 'accuracy': [], 'loss': [], 'num_clients': []}
 
     def initialize_global_model(self):
         # PyTorch model is already initialized with random weights in FLModel.__init__
@@ -98,15 +98,16 @@ class FLAggregator:
             weighted_acc = 0.0
             weighted_loss = 0.0
 
+        n_clients = len(self.client_weights)
         self.history['rounds'].append(self.round + 1)
         self.history['accuracy'].append(round(weighted_acc, 4))
         self.history['loss'].append(round(weighted_loss, 4))
+        self.history['num_clients'].append(n_clients)
 
         # Audit Log
         try:
             from app import db
             from app.models import AuditLog
-            n_clients = len(self.client_weights)
             log = AuditLog(
                 action='FL Round Aggregation',
                 details=f'Round {self.round+1} completed. '
@@ -161,3 +162,19 @@ class FLAggregator:
 
     def get_global_model(self):
         return self.global_model
+
+    def get_status(self) -> dict:
+        """Get current aggregator status."""
+        # While waiting to Aggregate: count pending uploads.
+        # After Aggregate: buffer is cleared, so use last round's recorded count.
+        if self.client_weights:
+            clients_updated = len(self.client_weights)
+        elif self.history['num_clients']:
+            clients_updated = self.history['num_clients'][-1]
+        else:
+            clients_updated = 0
+        return {
+            'round': self.round,
+            'clients_updated': clients_updated,
+            'clients_pending': len(self.client_weights),
+        }

@@ -90,10 +90,7 @@ HOSPITAL_DATA_MAP = {
 @limiter.limit("60 per minute")
 @login_required
 def fl_status():
-    return jsonify({
-        'round': aggregator.round,
-        'clients_updated': len(aggregator.client_weights)
-    })
+    return jsonify(aggregator.get_status())
 
 @bp.route('/fl/start_round', methods=['POST'])
 @login_required
@@ -243,6 +240,8 @@ def rollback_model(round_num):
             aggregator.history['rounds'] = aggregator.history['rounds'][:round_num]
             aggregator.history['accuracy'] = aggregator.history['accuracy'][:round_num]
             aggregator.history['loss'] = aggregator.history['loss'][:round_num]
+            if 'num_clients' in aggregator.history:
+                aggregator.history['num_clients'] = aggregator.history['num_clients'][:round_num]
             
         # Log it
         from app import db
@@ -284,6 +283,8 @@ def ecg_rollback_model(round_num):
             ecg_aggregator.history['rounds'] = ecg_aggregator.history['rounds'][:round_num]
             ecg_aggregator.history['accuracy'] = ecg_aggregator.history['accuracy'][:round_num]
             ecg_aggregator.history['loss'] = ecg_aggregator.history['loss'][:round_num]
+            if 'num_clients' in ecg_aggregator.history:
+                ecg_aggregator.history['num_clients'] = ecg_aggregator.history['num_clients'][:round_num]
             
         # Log it
         from app import db

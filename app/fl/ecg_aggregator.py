@@ -287,10 +287,19 @@ class FedBNAggregator:
     
     def get_status(self) -> dict:
         """Get current aggregator status."""
+        # While waiting to Aggregate: count pending uploads.
+        # After Aggregate: buffer is cleared, so use last round's recorded count.
+        if self.client_weights:
+            clients_updated = len(self.client_weights)
+        elif self.history['num_clients']:
+            clients_updated = self.history['num_clients'][-1]
+        else:
+            clients_updated = 0
         return {
             'round': self.round,
             'aggregation_type': self.aggregation_type,
-            'clients_updated': len(self.client_weights),
+            'clients_updated': clients_updated,
+            'clients_pending': len(self.client_weights),
             'clients_waiting': len(self.client_weights) > 0,
             'total_samples': sum(self.client_sizes)
         }
